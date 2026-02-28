@@ -23,9 +23,9 @@ export class InjuryLogComponent implements OnInit {
   );
 
   ngOnInit() {
-    const state = this.storageService.getGameState();
+    const state = this.storageService.getActiveGameState();
     if (!state) {
-      this.router.navigate(["/"]);
+      this.router.navigate(['/']);
       return;
     }
     this.teamName.set(state.teamName);

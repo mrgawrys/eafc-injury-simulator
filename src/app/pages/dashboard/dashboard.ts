@@ -72,9 +72,9 @@ export class DashboardComponent implements OnInit {
 
   async ngOnInit() {
     await this.dataService.loadData();
-    const state = this.storageService.getGameState();
+    const state = this.storageService.getActiveGameState();
     if (!state) {
-      this.router.navigate(["/"]);
+      this.router.navigate(['/']);
       return;
     }
     this.gameState.set(state);
@@ -115,7 +115,13 @@ export class DashboardComponent implements OnInit {
       injuryHistory: [...state.injuryHistory, ...result.newInjuries],
     };
 
-    this.storageService.saveGameState(newState);
+    const saveId = this.storageService.getActiveSaveId()!;
+    const save = this.storageService.getSave(saveId)!;
+    this.storageService.saveSave({
+      ...save,
+      gameState: newState,
+      updatedAt: new Date().toISOString(),
+    });
     this.gameState.set(newState);
     this.lastResult.set({ newInjuries: result.newInjuries, recovered: result.recovered });
   }
@@ -127,9 +133,8 @@ export class DashboardComponent implements OnInit {
     this.advanceTime();
   }
 
-  newSeason() {
-    this.storageService.clearGameState();
-    this.router.navigate(["/"]);
+  backToHome() {
+    this.router.navigate(['/']);
   }
 
   onDateInput(event: Event) {

@@ -1,0 +1,50 @@
+@if (!loaded()) {
+  <p class="text-muted-foreground">Loading team data...</p>
+} @else {
+  @if (hasActiveGame()) {
+    <div class="mb-8 rounded-lg border bg-card p-6">
+      <h2 class="text-lg font-semibold">Active Season</h2>
+      <p class="mt-1 text-muted-foreground">You have an ongoing season with <strong>{{ activeTeamName() }}</strong>.</p>
+      <div class="mt-4 flex gap-3">
+        <button
+          class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          (click)="continueGame()"
+        >
+          Continue Season
+        </button>
+        <button
+          class="rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent"
+          (click)="hasActiveGame.set(false)"
+        >
+          New Season
+        </button>
+      </div>
+    </div>
+  }
+
+  <h2 class="mb-4 text-2xl font-bold">Select a Team</h2>
+
+  <input
+    type="text"
+    placeholder="Search teams..."
+    class="mb-6 w-full rounded-md border bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+    [value]="searchQuery()"
+    (input)="onSearchInput($event)"
+  />
+
+  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    @for (team of filteredTeams(); track team.name) {
+      <button
+        class="rounded-lg border bg-card p-4 text-left transition-colors hover:bg-accent"
+        (click)="selectTeam(team.name)"
+      >
+        <div class="font-semibold">{{ team.name }}</div>
+        <div class="mt-1 text-sm text-muted-foreground">{{ team.players.length }} players</div>
+      </button>
+    }
+  </div>
+
+  @if (filteredTeams().length === 0) {
+    <p class="text-muted-foreground">No teams match "{{ searchQuery() }}"</p>
+  }
+}

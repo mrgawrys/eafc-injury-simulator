@@ -1,6 +1,8 @@
 # FIFA Injury Simulator
 
-Simulate realistic squad injuries for FC 25 teams using real Transfermarkt injury data. Pick a team, advance through the season, and see who gets injured based on each player's actual injury history.
+Add more spice to your FIFA tournament experience with a realistic injury system between matches. Instead of playing every game with a full-strength squad, this app simulates injuries based on real Transfermarkt data — so your star striker might pull a hamstring right before the final, just like in real football.
+
+Pick a team, advance time between matches, and deal with the squad selection headaches that real managers face. Players get injured at rates matching their actual injury history, miss realistic recovery times, and suffer the same types of injuries they do in real life.
 
 ## Prerequisites
 

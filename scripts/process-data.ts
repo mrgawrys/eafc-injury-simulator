@@ -12,6 +12,7 @@ export interface RosterPlayer {
   team: string;
   position: string;
   age: number;
+  overall?: number;
 }
 
 export interface InjuryRecord {
@@ -33,6 +34,7 @@ export interface PlayerData {
   name: string;
   position: string;
   age: number;
+  overall?: number;
   injuryProfile: InjuryProfile;
 }
 
@@ -182,6 +184,7 @@ function parseRosterCsv(csv: string): RosterPlayer[] {
         team: r["team"] || "",
         position: r["position_short_label"] || r["position"] || "",
         age,
+        overall: parseInt(r["overall_rating"], 10) || undefined,
       };
     }).filter((p: RosterPlayer) => p.name && p.team);
 }
@@ -265,6 +268,7 @@ async function main() {
         name: p.name,
         position: p.position,
         age: p.age,
+        overall: p.overall,
         injuryProfile: profile,
       });
     }

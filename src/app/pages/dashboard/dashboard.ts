@@ -11,6 +11,7 @@ interface PlayerRow {
   name: string;
   position: string;
   age: number;
+  overall?: number;
   status: "available" | "injured" | "returning-soon";
   injury?: Injury;
 }
@@ -29,7 +30,7 @@ export class DashboardComponent implements OnInit {
 
   gameState = signal<GameState | null>(null);
   showAdvanceDialog = signal(false);
-  advanceDays = signal(3);
+  targetDate = signal("");
   lastResult = signal<{ newInjuries: Injury[]; recovered: string[] } | null>(null);
 
   teamName = computed(() => this.gameState()?.teamName ?? "");
@@ -47,7 +48,7 @@ export class DashboardComponent implements OnInit {
       injuryMap.set(inj.playerId, inj);
     }
 
-    return team.players.map((p: Player) => {
+    const rows = team.players.map((p: Player) => {
       const playerId = `${state.teamName}__${p.name}`;
       const injury = injuryMap.get(playerId);
 
@@ -59,8 +60,11 @@ export class DashboardComponent implements OnInit {
         status = daysUntilReturn <= 3 ? "returning-soon" : "injured";
       }
 
-      return { name: p.name, position: p.position, age: p.age, status, injury };
+      return { name: p.name, position: p.position, age: p.age, overall: p.overall, status, injury };
     });
+
+    const statusOrder: Record<string, number> = { injured: 0, "returning-soon": 1, available: 2 };
+    return rows.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
   });
 
   injuredCount = computed(() => this.players().filter((p) => p.status !== "available").length);
@@ -78,6 +82,7 @@ export class DashboardComponent implements OnInit {
 
   openAdvanceDialog() {
     this.lastResult.set(null);
+    this.targetDate.set(this.addDays(this.gameState()?.currentDate ?? "", 3));
     this.showAdvanceDialog.set(true);
   }
 
@@ -92,14 +97,14 @@ export class DashboardComponent implements OnInit {
     const team = this.dataService.getTeam(state.teamName);
     if (!team) return;
 
-    const fromDate = state.currentDate;
-    const toDate = this.addDays(fromDate, this.advanceDays());
+    const toDate = this.targetDate();
+    if (toDate <= state.currentDate) return;
 
     const result = this.simulationService.simulateRange(
       team.players,
       state.activeInjuries,
       state.teamName,
-      fromDate,
+      state.currentDate,
       toDate
     );
 
@@ -116,7 +121,9 @@ export class DashboardComponent implements OnInit {
   }
 
   advanceToNextMatch() {
-    this.advanceDays.set(3);
+    const state = this.gameState();
+    if (!state) return;
+    this.targetDate.set(this.addDays(state.currentDate, 3));
     this.advanceTime();
   }
 
@@ -125,8 +132,8 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(["/"]);
   }
 
-  onDaysInput(event: Event) {
-    this.advanceDays.set(parseInt((event.target as HTMLInputElement).value, 10) || 1);
+  onDateInput(event: Event) {
+    this.targetDate.set((event.target as HTMLInputElement).value);
   }
 
   private addDays(date: string, days: number): string {

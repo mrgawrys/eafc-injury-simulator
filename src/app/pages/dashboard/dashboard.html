@@ -35,6 +35,7 @@
       <thead>
         <tr class="border-b bg-muted/50">
           <th class="px-4 py-3 text-left font-medium">Name</th>
+          <th class="px-4 py-3 text-left font-medium">OVR</th>
           <th class="px-4 py-3 text-left font-medium">Position</th>
           <th class="px-4 py-3 text-left font-medium">Age</th>
           <th class="px-4 py-3 text-left font-medium">Status</th>
@@ -45,6 +46,18 @@
         @for (player of players(); track player.name) {
           <tr class="border-b last:border-0">
             <td class="px-4 py-3 font-medium">{{ player.name }}</td>
+            <td class="px-4 py-3">
+              @if (player.overall) {
+                <span
+                  class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+                  [class]="player.overall >= 80 ? 'bg-green-100 text-green-800' : player.overall >= 70 ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'"
+                >
+                  {{ player.overall }}
+                </span>
+              } @else {
+                <span class="text-muted-foreground">—</span>
+              }
+            </td>
             <td class="px-4 py-3">{{ player.position }}</td>
             <td class="px-4 py-3">{{ player.age }}</td>
             <td class="px-4 py-3">
@@ -86,13 +99,12 @@
         @if (!lastResult()) {
           <div class="mt-4 space-y-4">
             <div>
-              <label class="block text-sm font-medium">Days to advance</label>
+              <label class="block text-sm font-medium">Advance to date</label>
               <input
-                type="number"
-                min="1"
-                max="365"
-                [value]="advanceDays()"
-                (input)="onDaysInput($event)"
+                type="date"
+                [min]="currentDate()"
+                [value]="targetDate()"
+                (input)="onDateInput($event)"
                 class="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
@@ -101,13 +113,13 @@
                 class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                 (click)="advanceTime()"
               >
-                Advance {{ advanceDays() }} days
+                Advance
               </button>
               <button
                 class="rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent"
                 (click)="advanceToNextMatch()"
               >
-                Next Match (3 days)
+                Next Match (+3 days)
               </button>
             </div>
           </div>

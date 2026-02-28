@@ -1,8 +1,137 @@
-import { Component } from "@angular/core";
+import { Component, computed, inject, OnInit, signal } from "@angular/core";
+import { Router, RouterLink } from "@angular/router";
+import { DataService } from "../../services/data";
+import { StorageService } from "../../services/storage";
+import { SimulationService } from "../../services/simulation";
+import type { GameState } from "../../models/game-state";
+import type { Player } from "../../models/player";
+import type { Injury } from "../../models/injury";
+
+interface PlayerRow {
+  name: string;
+  position: string;
+  age: number;
+  status: "available" | "injured" | "returning-soon";
+  injury?: Injury;
+}
 
 @Component({
   selector: "app-dashboard",
   standalone: true,
-  template: `<p>Dashboard</p>`,
+  imports: [RouterLink],
+  templateUrl: "./dashboard.html",
 })
-export class DashboardComponent {}
+export class DashboardComponent implements OnInit {
+  private dataService = inject(DataService);
+  private storageService = inject(StorageService);
+  private simulationService = inject(SimulationService);
+  private router = inject(Router);
+
+  gameState = signal<GameState | null>(null);
+  showAdvanceDialog = signal(false);
+  advanceDays = signal(3);
+  lastResult = signal<{ newInjuries: Injury[]; recovered: string[] } | null>(null);
+
+  teamName = computed(() => this.gameState()?.teamName ?? "");
+  currentDate = computed(() => this.gameState()?.currentDate ?? "");
+
+  players = computed<PlayerRow[]>(() => {
+    const state = this.gameState();
+    if (!state) return [];
+
+    const team = this.dataService.getTeam(state.teamName);
+    if (!team) return [];
+
+    const injuryMap = new Map<string, Injury>();
+    for (const inj of state.activeInjuries) {
+      injuryMap.set(inj.playerId, inj);
+    }
+
+    return team.players.map((p: Player) => {
+      const playerId = `${state.teamName}__${p.name}`;
+      const injury = injuryMap.get(playerId);
+
+      let status: PlayerRow["status"] = "available";
+      if (injury) {
+        const daysUntilReturn = Math.ceil(
+          (new Date(injury.returnDate).getTime() - new Date(state.currentDate).getTime()) / 86400000
+        );
+        status = daysUntilReturn <= 3 ? "returning-soon" : "injured";
+      }
+
+      return { name: p.name, position: p.position, age: p.age, status, injury };
+    });
+  });
+
+  injuredCount = computed(() => this.players().filter((p) => p.status !== "available").length);
+  availableCount = computed(() => this.players().filter((p) => p.status === "available").length);
+
+  async ngOnInit() {
+    await this.dataService.loadData();
+    const state = this.storageService.getGameState();
+    if (!state) {
+      this.router.navigate(["/"]);
+      return;
+    }
+    this.gameState.set(state);
+  }
+
+  openAdvanceDialog() {
+    this.lastResult.set(null);
+    this.showAdvanceDialog.set(true);
+  }
+
+  closeDialog() {
+    this.showAdvanceDialog.set(false);
+  }
+
+  advanceTime() {
+    const state = this.gameState();
+    if (!state) return;
+
+    const team = this.dataService.getTeam(state.teamName);
+    if (!team) return;
+
+    const fromDate = state.currentDate;
+    const toDate = this.addDays(fromDate, this.advanceDays());
+
+    const result = this.simulationService.simulateRange(
+      team.players,
+      state.activeInjuries,
+      state.teamName,
+      fromDate,
+      toDate
+    );
+
+    const newState: GameState = {
+      ...state,
+      currentDate: toDate,
+      activeInjuries: result.activeInjuries,
+      injuryHistory: [...state.injuryHistory, ...result.newInjuries],
+    };
+
+    this.storageService.saveGameState(newState);
+    this.gameState.set(newState);
+    this.lastResult.set({ newInjuries: result.newInjuries, recovered: result.recovered });
+  }
+
+  advanceToNextMatch() {
+    this.advanceDays.set(3);
+    this.advanceTime();
+  }
+
+  newSeason() {
+    this.storageService.clearGameState();
+    this.router.navigate(["/"]);
+  }
+
+  onDaysInput(event: Event) {
+    this.advanceDays.set(parseInt((event.target as HTMLInputElement).value, 10) || 1);
+  }
+
+  private addDays(date: string, days: number): string {
+    const d = new Date(date);
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0, 10);
+  }
+}

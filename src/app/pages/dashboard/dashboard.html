@@ -1,0 +1,155 @@
+@if (gameState()) {
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-bold">{{ teamName() }}</h2>
+      <p class="text-muted-foreground">
+        Season Date: <strong>{{ currentDate() }}</strong>
+        &middot; {{ availableCount() }} available &middot; {{ injuredCount() }} injured
+      </p>
+    </div>
+    <div class="flex gap-2">
+      <button
+        class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+        (click)="openAdvanceDialog()"
+      >
+        Advance Time
+      </button>
+      <a
+        routerLink="/injury-log"
+        class="rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent"
+      >
+        Injury Log
+      </a>
+      <button
+        class="rounded-md border border-destructive px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive/10"
+        (click)="newSeason()"
+      >
+        New Season
+      </button>
+    </div>
+  </div>
+
+  <!-- Squad Table -->
+  <div class="rounded-lg border">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b bg-muted/50">
+          <th class="px-4 py-3 text-left font-medium">Name</th>
+          <th class="px-4 py-3 text-left font-medium">Position</th>
+          <th class="px-4 py-3 text-left font-medium">Age</th>
+          <th class="px-4 py-3 text-left font-medium">Status</th>
+          <th class="px-4 py-3 text-left font-medium">Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (player of players(); track player.name) {
+          <tr class="border-b last:border-0">
+            <td class="px-4 py-3 font-medium">{{ player.name }}</td>
+            <td class="px-4 py-3">{{ player.position }}</td>
+            <td class="px-4 py-3">{{ player.age }}</td>
+            <td class="px-4 py-3">
+              @switch (player.status) {
+                @case ("available") {
+                  <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                    Available
+                  </span>
+                }
+                @case ("returning-soon") {
+                  <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+                    Returning Soon
+                  </span>
+                }
+                @case ("injured") {
+                  <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                    Injured
+                  </span>
+                }
+              }
+            </td>
+            <td class="px-4 py-3 text-muted-foreground">
+              @if (player.injury) {
+                {{ player.injury.type }} &middot; returns {{ player.injury.returnDate }}
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Advance Time Dialog -->
+  @if (showAdvanceDialog()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" (click)="closeDialog()">
+      <div class="w-full max-w-md rounded-lg bg-background p-6 shadow-lg" (click)="$event.stopPropagation()">
+        <h3 class="text-lg font-semibold">Advance Time</h3>
+
+        @if (!lastResult()) {
+          <div class="mt-4 space-y-4">
+            <div>
+              <label class="block text-sm font-medium">Days to advance</label>
+              <input
+                type="number"
+                min="1"
+                max="365"
+                [value]="advanceDays()"
+                (input)="onDaysInput($event)"
+                class="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+            <div class="flex gap-2">
+              <button
+                class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                (click)="advanceTime()"
+              >
+                Advance {{ advanceDays() }} days
+              </button>
+              <button
+                class="rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent"
+                (click)="advanceToNextMatch()"
+              >
+                Next Match (3 days)
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="mt-4 space-y-3">
+            <p class="text-sm text-muted-foreground">Advanced to <strong>{{ currentDate() }}</strong></p>
+
+            @if (lastResult()!.newInjuries.length > 0) {
+              <div>
+                <h4 class="text-sm font-semibold text-destructive">New Injuries</h4>
+                <ul class="mt-1 space-y-1 text-sm">
+                  @for (inj of lastResult()!.newInjuries; track inj.playerId) {
+                    <li>{{ inj.playerName }} — {{ inj.type }} ({{ inj.daysMissed }} days)</li>
+                  }
+                </ul>
+              </div>
+            } @else {
+              <p class="text-sm text-green-600">No new injuries!</p>
+            }
+
+            @if (lastResult()!.recovered.length > 0) {
+              <div>
+                <h4 class="text-sm font-semibold text-green-600">Recovered</h4>
+                <ul class="mt-1 space-y-1 text-sm">
+                  @for (name of lastResult()!.recovered; track name) {
+                    <li>{{ name }}</li>
+                  }
+                </ul>
+              </div>
+            }
+
+            <button
+              class="mt-2 rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent"
+              (click)="closeDialog()"
+            >
+              Close
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+} @else {
+  <p class="text-muted-foreground">Loading...</p>
+}

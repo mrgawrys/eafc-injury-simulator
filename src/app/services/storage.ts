@@ -15,15 +15,6 @@ export abstract class StorageService {
   abstract setActiveSaveId(id: string | null): void;
   abstract getActiveGameState(): GameState | null;
   abstract hasAnySave(): boolean;
-
-  /** @deprecated Use getActiveGameState() — will be removed in Tasks 4-5 */
-  abstract getGameState(): GameState | null;
-  /** @deprecated Use saveSave() — will be removed in Tasks 4-5 */
-  abstract saveGameState(state: GameState): void;
-  /** @deprecated Use deleteSave() — will be removed in Tasks 4-5 */
-  abstract clearGameState(): void;
-  /** @deprecated Use hasAnySave() — will be removed in Tasks 4-5 */
-  abstract hasActiveGame(): boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -102,44 +93,4 @@ export class LocalStorageService extends StorageService {
     return this.getSaves().length > 0;
   }
 
-  /** @deprecated Compat shim — delegates to getActiveGameState() */
-  getGameState(): GameState | null {
-    return this.getActiveGameState();
-  }
-
-  /** @deprecated Compat shim — saves into active slot or creates new one */
-  saveGameState(state: GameState): void {
-    const activeId = this.getActiveSaveId();
-    const existing = activeId ? this.getSave(activeId) : null;
-    const now = new Date().toISOString();
-
-    if (existing) {
-      existing.gameState = state;
-      existing.updatedAt = now;
-      this.saveSave(existing);
-    } else {
-      const slot: SaveSlot = {
-        id: crypto.randomUUID(),
-        name: `${state.teamName} Save`,
-        gameState: state,
-        createdAt: now,
-        updatedAt: now,
-      };
-      this.saveSave(slot);
-      this.setActiveSaveId(slot.id);
-    }
-  }
-
-  /** @deprecated Compat shim — deletes active save */
-  clearGameState(): void {
-    const activeId = this.getActiveSaveId();
-    if (activeId) {
-      this.deleteSave(activeId);
-    }
-  }
-
-  /** @deprecated Compat shim — delegates to hasAnySave() */
-  hasActiveGame(): boolean {
-    return this.getActiveSaveId() !== null && this.hasAnySave();
-  }
 }

@@ -103,6 +103,11 @@
                     Available
                   </span>
                 }
+                @case ("recovering") {
+                  <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+                    Recovering
+                  </span>
+                }
                 @case ("returning-soon") {
                   <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
                     Returning Soon
@@ -118,6 +123,8 @@
             <td class="px-4 py-3 text-muted-foreground">
               @if (player.injury) {
                 {{ player.injury.type }} &middot; returns {{ player.injury.returnDate }}
+              } @else if (player.recoveryEndDate) {
+                Recovery period &middot; until {{ player.recoveryEndDate }}
               }
             </td>
             @if (fatigueEnabled()) {

@@ -18,8 +18,9 @@ interface PlayerRow {
   age: number;
   overall?: number;
   avatarUrl?: string;
-  status: "available" | "injured" | "returning-soon";
+  status: "available" | "injured" | "returning-soon" | "recovering";
   injury?: Injury;
+  recoveryEndDate?: string;
   fatigueBadge?: 'fresh' | 'fatigued' | 'high-risk' | null;
   fatigueScore?: number;
   inSquad?: boolean;
@@ -81,11 +82,15 @@ export class DashboardComponent implements OnInit {
       const injury = injuryMap.get(playerId);
 
       let status: PlayerRow["status"] = "available";
+      let recoveryEndDate: string | undefined;
       if (injury) {
         const daysUntilReturn = Math.ceil(
           (new Date(injury.returnDate).getTime() - new Date(state.currentDate).getTime()) / 86400000
         );
         status = daysUntilReturn <= 3 ? "returning-soon" : "injured";
+      } else if (state.playerRecovery?.[playerId] && state.playerRecovery[playerId] > state.currentDate) {
+        status = "recovering";
+        recoveryEndDate = state.playerRecovery[playerId];
       }
 
       const fatigueScore = state.fatigueEnabled
@@ -98,10 +103,10 @@ export class DashboardComponent implements OnInit {
         ? state.defaultSquad.includes(playerId)
         : undefined;
 
-      return { name: p.name, position: p.position, age: p.age, overall: p.overall, avatarUrl: p.avatarUrl, status, injury, fatigueBadge, fatigueScore, inSquad };
+      return { name: p.name, position: p.position, age: p.age, overall: p.overall, avatarUrl: p.avatarUrl, status, injury, recoveryEndDate, fatigueBadge, fatigueScore, inSquad };
     });
 
-    const statusOrder: Record<string, number> = { injured: 0, "returning-soon": 1, available: 2 };
+    const statusOrder: Record<string, number> = { injured: 0, "returning-soon": 1, recovering: 2, available: 3 };
     return rows.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
   });
 
@@ -129,7 +134,7 @@ export class DashboardComponent implements OnInit {
         }
         case 'age': valA = a.age; valB = b.age; break;
         case 'status': {
-          const order: Record<string, number> = { injured: 0, 'returning-soon': 1, available: 2 };
+          const order: Record<string, number> = { injured: 0, 'returning-soon': 1, recovering: 2, available: 3 };
           valA = order[a.status]; valB = order[b.status]; break;
         }
         default: return 0;
@@ -211,7 +216,8 @@ export class DashboardComponent implements OnInit {
       state.teamName,
       state.currentDate,
       toDate,
-      state.fatigueEnabled ? updatedFatigue : undefined
+      state.fatigueEnabled ? updatedFatigue : undefined,
+      state.playerRecovery
     );
 
     const newState: GameState = {
@@ -221,6 +227,7 @@ export class DashboardComponent implements OnInit {
       injuryHistory: [...state.injuryHistory, ...result.newInjuries],
       matchLog: newMatchLog,
       playerFatigue: result.updatedFatigue ?? state.playerFatigue,
+      playerRecovery: result.updatedRecovery ?? state.playerRecovery,
     };
 
     const saveId = this.storageService.getActiveSaveId()!;

@@ -1,10 +1,11 @@
 import { Component, computed, inject, OnInit, signal } from "@angular/core";
-import { Router, RouterLink } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { DataService } from "../../services/data";
 import { StorageService } from "../../services/storage";
 import { SimulationService } from "../../services/simulation";
 import { FatigueService } from "../../services/fatigue";
 import { PlayerAvatarComponent } from "../../components/player-avatar";
+import { SquadPickerComponent } from "../../components/squad-picker";
 import type { GameState } from "../../models/game-state";
 import type { Player } from "../../models/player";
 import type { Injury } from "../../models/injury";
@@ -26,7 +27,7 @@ interface PlayerRow {
 @Component({
   selector: "app-dashboard",
   standalone: true,
-  imports: [RouterLink, PlayerAvatarComponent],
+  imports: [RouterLink, PlayerAvatarComponent, SquadPickerComponent],
   templateUrl: "./dashboard.html",
 })
 export class DashboardComponent implements OnInit {
@@ -35,6 +36,7 @@ export class DashboardComponent implements OnInit {
   private simulationService = inject(SimulationService);
   private fatigueService = inject(FatigueService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   gameState = signal<GameState | null>(null);
   showAdvanceDialog = signal(false);
@@ -45,10 +47,15 @@ export class DashboardComponent implements OnInit {
 
   // Edit Starting XI
   showEditSquad = signal(false);
-  editingSquad = signal<Set<string>>(new Set());
-  editSquadCount = computed(() => this.editingSquad().size);
+  initialSquadPick = signal(false);
 
   teamName = computed(() => this.gameState()?.teamName ?? "");
+  teamPlayers = computed(() => {
+    const name = this.teamName();
+    if (!name) return [];
+    const team = this.dataService.getTeam(name);
+    return team?.players ?? [];
+  });
   currentDate = computed(() => this.gameState()?.currentDate ?? "");
   fatigueEnabled = computed(() => this.gameState()?.fatigueEnabled ?? false);
   teamBadgeUrl = computed(() => {
@@ -144,6 +151,11 @@ export class DashboardComponent implements OnInit {
       return;
     }
     this.gameState.set(state);
+
+    if (this.route.snapshot.queryParamMap.get('pickSquad')) {
+      this.initialSquadPick.set(true);
+      this.showEditSquad.set(true);
+    }
   }
 
   openAdvanceDialog() {
@@ -311,28 +323,14 @@ export class DashboardComponent implements OnInit {
   }
 
   openEditSquad() {
-    const state = this.gameState();
-    if (!state) return;
-    this.editingSquad.set(new Set(state.defaultSquad));
+    this.initialSquadPick.set(false);
     this.showEditSquad.set(true);
   }
 
-  toggleEditSquadPlayer(playerId: string) {
-    this.editingSquad.update(set => {
-      const next = new Set(set);
-      if (next.has(playerId)) {
-        next.delete(playerId);
-      } else if (next.size < 11) {
-        next.add(playerId);
-      }
-      return next;
-    });
-  }
-
-  saveEditSquad() {
+  saveSquad(selected: Set<string>) {
     const state = this.gameState();
     if (!state) return;
-    const newState = { ...state, defaultSquad: [...this.editingSquad()] };
+    const newState = { ...state, defaultSquad: [...selected] };
     const saveId = this.storageService.getActiveSaveId()!;
     const save = this.storageService.getSave(saveId)!;
     this.storageService.saveSave({
@@ -342,6 +340,12 @@ export class DashboardComponent implements OnInit {
     });
     this.gameState.set(newState);
     this.showEditSquad.set(false);
+    this.initialSquadPick.set(false);
+  }
+
+  cancelEditSquad() {
+    this.showEditSquad.set(false);
+    this.initialSquadPick.set(false);
   }
 
   private addDays(date: string, days: number): string {

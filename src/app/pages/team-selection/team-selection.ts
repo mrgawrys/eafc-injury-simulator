@@ -27,18 +27,6 @@ export class TeamSelectionComponent implements OnInit {
   selectedTeamName = signal('');
   saveName = signal('');
 
-  // Squad picker
-  showSquadPicker = signal(false);
-  selectedSquad = signal<Set<string>>(new Set());
-
-  teamPlayers = computed(() => {
-    const name = this.selectedTeamName();
-    if (!name) return [];
-    const team = this.dataService.getTeam(name);
-    return team?.players ?? [];
-  });
-
-  squadCount = computed(() => this.selectedSquad().size);
 
   filteredTeams = computed(() => {
     const query = this.searchQuery().toLowerCase();
@@ -96,43 +84,21 @@ export class TeamSelectionComponent implements OnInit {
 
   createSave() {
     if (this.fatigueEnabled()) {
-      this.showNewSeasonDialog.set(false);
-      this.showSquadPicker.set(true);
+      const teamName = this.selectedTeamName();
+      const team = this.dataService.getTeam(teamName);
+      const playerFatigue: Record<string, number> = {};
+      if (team) {
+        for (const p of team.players) {
+          playerFatigue[`${teamName}__${p.name}`] = 30;
+        }
+      }
+      this.startGame([], playerFatigue, true);
       return;
     }
     this.startGame([], {});
   }
 
-  togglePlayerInSquad(playerId: string) {
-    this.selectedSquad.update((set) => {
-      const next = new Set(set);
-      if (next.has(playerId)) {
-        next.delete(playerId);
-      } else if (next.size < 11) {
-        next.add(playerId);
-      }
-      return next;
-    });
-  }
-
-  confirmSquad() {
-    const teamName = this.selectedTeamName();
-    const team = this.dataService.getTeam(teamName);
-    const playerFatigue: Record<string, number> = {};
-    if (team) {
-      for (const p of team.players) {
-        playerFatigue[`${teamName}__${p.name}`] = 30;
-      }
-    }
-    this.startGame([...this.selectedSquad()], playerFatigue);
-  }
-
-  cancelSquadPicker() {
-    this.showSquadPicker.set(false);
-    this.selectedSquad.set(new Set());
-  }
-
-  private startGame(defaultSquad: string[], playerFatigue: Record<string, number>) {
+  private startGame(defaultSquad: string[], playerFatigue: Record<string, number>, pickSquad = false) {
     const teamName = this.selectedTeamName();
     const name = this.saveName().trim() || `${teamName} Save`;
     const today = new Date().toISOString().slice(0, 10);
@@ -160,7 +126,7 @@ export class TeamSelectionComponent implements OnInit {
 
     this.storageService.saveSave(slot);
     this.storageService.setActiveSaveId(slot.id);
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/dashboard'], pickSquad ? { queryParams: { pickSquad: '1' } } : {});
   }
 
   loadSave(save: SaveSlot) {

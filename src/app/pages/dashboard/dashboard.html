@@ -107,6 +107,27 @@
                 {{ player.injury.type }} &middot; returns {{ player.injury.returnDate }}
               }
             </td>
+            @if (fatigueEnabled()) {
+              <td class="px-4 py-3">
+                @switch (player.fatigueBadge) {
+                  @case ('fresh') {
+                    <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                      Fresh
+                    </span>
+                  }
+                  @case ('fatigued') {
+                    <span class="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800">
+                      Fatigued
+                    </span>
+                  }
+                  @case ('high-risk') {
+                    <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                      High Risk
+                    </span>
+                  }
+                }
+              </td>
+            }
           </tr>
         }
       </tbody>
@@ -116,80 +137,131 @@
   <!-- Advance Time Dialog -->
   @if (showAdvanceDialog()) {
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" (click)="closeDialog()">
-      <div class="w-full max-w-md rounded-lg bg-background p-6 shadow-lg" (click)="$event.stopPropagation()">
-        <h3 class="text-lg font-semibold">Advance Time</h3>
+      <div class="w-full max-w-md rounded-lg bg-background p-6 shadow-lg max-h-[80vh] overflow-y-auto" (click)="$event.stopPropagation()">
 
-        @if (!lastResult()) {
-          <div class="mt-4 space-y-4">
-            <div>
-              <label class="block text-sm font-medium">Advance to date</label>
-              <input
-                type="date"
-                [min]="currentDate()"
-                [value]="targetDate()"
-                (input)="onDateInput($event)"
-                class="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              />
+        @switch (advanceStep()) {
+          @case ('squad') {
+            <h3 class="text-lg font-semibold">Who Played?</h3>
+            <p class="mt-1 text-sm text-muted-foreground">Tap to cycle: Starter &rarr; Sub &rarr; Rested</p>
+
+            <div class="mt-4 space-y-1">
+              @for (player of players(); track player.name) {
+                @let playerId = teamName() + '__' + player.name;
+                @let role = matchSquad()[playerId] ?? 'rested';
+                <button
+                  class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors"
+                  [class]="role === 'starter' ? 'bg-primary/10' : role === 'sub' ? 'bg-blue-50' : ''"
+                  [disabled]="player.status === 'injured'"
+                  (click)="cycleRole(playerId)"
+                >
+                  <span [class.text-muted-foreground]="player.status === 'injured'">
+                    {{ player.name }}
+                  </span>
+                  <span class="text-xs font-medium"
+                    [class]="role === 'starter' ? 'text-primary' : role === 'sub' ? 'text-blue-600' : 'text-muted-foreground'"
+                  >
+                    @if (player.status === 'injured') {
+                      Injured
+                    } @else {
+                      {{ role === 'starter' ? 'Starter' : role === 'sub' ? 'Sub' : 'Rested' }}
+                    }
+                  </span>
+                </button>
+              }
             </div>
-            <div class="flex gap-2">
+
+            <div class="mt-4 flex gap-2">
               <button
                 class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                (click)="advanceTime()"
+                (click)="proceedToDate()"
               >
-                Advance
+                Next
               </button>
               <button
                 class="rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent"
-                (click)="advanceToNextMatch()"
+                (click)="closeDialog()"
               >
-                Next Match (+3 days)
+                Cancel
               </button>
             </div>
-          </div>
-        } @else {
-          <div class="mt-4 space-y-3">
-            <p class="text-sm text-muted-foreground">Advanced to <strong>{{ currentDate() }}</strong></p>
+          }
 
-            @if (lastResult()!.newInjuries.length > 0) {
+          @case ('date') {
+            <h3 class="text-lg font-semibold">Advance Time</h3>
+            <div class="mt-4 space-y-4">
               <div>
-                <h4 class="text-sm font-semibold text-destructive">New Injuries</h4>
-                <ul class="mt-1 space-y-1 text-sm">
-                  @for (inj of lastResult()!.newInjuries; track inj.playerId) {
-                    <li class="flex items-center gap-3">
-                      <app-player-avatar [name]="inj.playerName" [avatarUrl]="getPlayerAvatarUrl(inj.playerName)" size="lg" />
-                      <div>
-                        <span class="font-medium">{{ inj.playerName }}</span>
-                        <span class="text-muted-foreground"> — {{ inj.type }} ({{ inj.daysMissed }} days)</span>
-                      </div>
-                    </li>
-                  }
-                </ul>
+                <label class="block text-sm font-medium">Advance to date</label>
+                <input
+                  type="date"
+                  [min]="currentDate()"
+                  [value]="targetDate()"
+                  (input)="onDateInput($event)"
+                  class="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
               </div>
-            } @else {
-              <p class="text-sm text-green-600">No new injuries!</p>
-            }
-
-            @if (lastResult()!.recovered.length > 0) {
-              <div>
-                <h4 class="text-sm font-semibold text-green-600">Recovered</h4>
-                <ul class="mt-1 space-y-1 text-sm">
-                  @for (name of lastResult()!.recovered; track name) {
-                    <li class="flex items-center gap-3">
-                      <app-player-avatar [name]="name" [avatarUrl]="getPlayerAvatarUrl(name)" size="lg" />
-                      {{ name }}
-                    </li>
-                  }
-                </ul>
+              <div class="flex gap-2">
+                <button
+                  class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                  (click)="advanceTime()"
+                >
+                  Advance
+                </button>
+                <button
+                  class="rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent"
+                  (click)="advanceToNextMatch()"
+                >
+                  Next Match (+3 days)
+                </button>
               </div>
-            }
+            </div>
+          }
 
-            <button
-              class="mt-2 rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent"
-              (click)="closeDialog()"
-            >
-              Close
-            </button>
-          </div>
+          @case ('result') {
+            <h3 class="text-lg font-semibold">Results</h3>
+            <div class="mt-4 space-y-3">
+              <p class="text-sm text-muted-foreground">Advanced to <strong>{{ currentDate() }}</strong></p>
+
+              @if (lastResult()!.newInjuries.length > 0) {
+                <div>
+                  <h4 class="text-sm font-semibold text-destructive">New Injuries</h4>
+                  <ul class="mt-1 space-y-1 text-sm">
+                    @for (inj of lastResult()!.newInjuries; track inj.playerId) {
+                      <li class="flex items-center gap-3">
+                        <app-player-avatar [name]="inj.playerName" [avatarUrl]="getPlayerAvatarUrl(inj.playerName)" size="lg" />
+                        <div>
+                          <span class="font-medium">{{ inj.playerName }}</span>
+                          <span class="text-muted-foreground"> &mdash; {{ inj.type }} ({{ inj.daysMissed }} days)</span>
+                        </div>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              } @else {
+                <p class="text-sm text-green-600">No new injuries!</p>
+              }
+
+              @if (lastResult()!.recovered.length > 0) {
+                <div>
+                  <h4 class="text-sm font-semibold text-green-600">Recovered</h4>
+                  <ul class="mt-1 space-y-1 text-sm">
+                    @for (name of lastResult()!.recovered; track name) {
+                      <li class="flex items-center gap-3">
+                        <app-player-avatar [name]="name" [avatarUrl]="getPlayerAvatarUrl(name)" size="lg" />
+                        {{ name }}
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+
+              <button
+                class="mt-2 rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent"
+                (click)="closeDialog()"
+              >
+                Close
+              </button>
+            </div>
+          }
         }
       </div>
     </div>

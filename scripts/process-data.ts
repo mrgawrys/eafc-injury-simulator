@@ -295,6 +295,17 @@ async function main() {
     teams.push({ name: teamName, league, badgeUrl, players: teamPlayers });
   }
 
+  // Pin preferred teams to the top
+  const pinnedOrder = ['FC Barcelona', 'Liverpool'];
+  teams.sort((a, b) => {
+    const ai = pinnedOrder.indexOf(a.name);
+    const bi = pinnedOrder.indexOf(b.name);
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
+    return 0;
+  });
+
   const output: TeamsFile = { leagueAverage: leagueAvg, teams };
 
   mkdirSync(OUT_DIR, { recursive: true });

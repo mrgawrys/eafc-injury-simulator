@@ -143,4 +143,46 @@
       </div>
     </div>
   }
+
+  <!-- Squad Picker Modal -->
+  @if (showSquadPicker()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div class="w-full max-w-lg rounded-lg bg-background p-6 shadow-lg max-h-[80vh] overflow-y-auto">
+        <h3 class="text-lg font-semibold">Select Starting XI</h3>
+        <p class="mt-1 text-sm text-muted-foreground">
+          {{ selectedTeamName() }} &middot; {{ squadCount() }}/11 selected
+        </p>
+
+        <div class="mt-4 space-y-1">
+          @for (player of teamPlayers(); track player.name) {
+            @let playerId = selectedTeamName() + '__' + player.name;
+            <button
+              class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors"
+              [class]="selectedSquad().has(playerId) ? 'bg-primary/10 text-primary' : 'hover:bg-accent'"
+              (click)="togglePlayerInSquad(playerId)"
+            >
+              <span>{{ player.name }}</span>
+              <span class="text-xs text-muted-foreground">{{ player.position }}</span>
+            </button>
+          }
+        </div>
+
+        <div class="mt-4 flex gap-2">
+          <button
+            class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            [disabled]="squadCount() !== 11"
+            (click)="confirmSquad()"
+          >
+            Start Season
+          </button>
+          <button
+            class="rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent"
+            (click)="cancelSquadPicker()"
+          >
+            Back
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 }

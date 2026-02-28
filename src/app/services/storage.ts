@@ -33,6 +33,7 @@ export class LocalStorageService extends StorageService {
       defaultSquad: [],
       matchLog: [],
       playerFatigue: {},
+      playerRecovery: {},
       ...JSON.parse(legacy),
     };
     const now = new Date().toISOString();

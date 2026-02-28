@@ -12,4 +12,6 @@ export interface GameState {
   defaultSquad: string[];
   matchLog: MatchLog[];
   playerFatigue: Record<string, number>;
+  /** Maps playerId → recovery end date (ISO). Players recovering from injury have increased injury risk. */
+  playerRecovery: Record<string, string>;
 }

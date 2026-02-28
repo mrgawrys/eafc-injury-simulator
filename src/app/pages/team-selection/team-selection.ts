@@ -114,6 +114,7 @@ export class TeamSelectionComponent implements OnInit {
       defaultSquad,
       matchLog: [],
       playerFatigue,
+      playerRecovery: {},
     };
 
     const slot: SaveSlot = {

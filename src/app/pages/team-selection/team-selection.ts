@@ -20,6 +20,7 @@ export class TeamSelectionComponent implements OnInit {
   searchQuery = signal('');
   saves = signal<SaveSlot[]>([]);
   showAllSaves = signal(false);
+  fatigueEnabled = signal(false);
 
   // New season dialog
   showNewSeasonDialog = signal(false);
@@ -65,6 +66,10 @@ export class TeamSelectionComponent implements OnInit {
     return existing.length + 1;
   }
 
+  toggleFatigue() {
+    this.fatigueEnabled.update((v) => !v);
+  }
+
   openNewSeasonDialog(teamName: string) {
     this.selectedTeamName.set(teamName);
     const num = this.getNextSaveNumber(teamName);
@@ -88,7 +93,7 @@ export class TeamSelectionComponent implements OnInit {
       seasonStartDate: today,
       activeInjuries: [],
       injuryHistory: [],
-      fatigueEnabled: false,
+      fatigueEnabled: this.fatigueEnabled(),
       defaultSquad: [],
       matchLog: [],
       playerFatigue: {},

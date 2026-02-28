@@ -1,7 +1,7 @@
-import { Injectable, signal } from "@angular/core";
-import type { Team } from "../models/player";
+import { Injectable, signal } from '@angular/core';
+import type { Team, TeamsFile } from '../models/player';
 
-@Injectable({ providedIn: "root" })
+@Injectable({ providedIn: 'root' })
 export class DataService {
   private _teams = signal<Team[]>([]);
   readonly teams = this._teams.asReadonly();
@@ -12,13 +12,21 @@ export class DataService {
   async loadData(): Promise<void> {
     if (this._loaded()) return;
 
-    const res = await fetch("/data/teams.json");
+    const res = await fetch('/data/teams.json');
     if (!res.ok) {
-      throw new Error(
-        "Failed to load team data. Did you run 'npm run setup-data'?"
-      );
+      throw new Error("Failed to load team data. Did you run 'npm run setup-data'?");
     }
-    const teams: Team[] = await res.json();
+    const data: TeamsFile = await res.json();
+
+    // Hydrate players that have no individual profile with the league average
+    const teams: Team[] = data.teams.map((t) => ({
+      ...t,
+      players: t.players.map((p) => ({
+        ...p,
+        injuryProfile: p.injuryProfile ?? data.leagueAverage,
+      })),
+    }));
+
     this._teams.set(teams);
     this._loaded.set(true);
   }

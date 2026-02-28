@@ -38,7 +38,7 @@ export interface PlayerData {
   age: number;
   overall?: number;
   avatarUrl?: string;
-  injuryProfile: InjuryProfile;
+  injuryProfile?: InjuryProfile;
 }
 
 export interface TeamData {
@@ -46,6 +46,11 @@ export interface TeamData {
   league: string;
   badgeUrl?: string;
   players: PlayerData[];
+}
+
+export interface TeamsFile {
+  leagueAverage: InjuryProfile;
+  teams: TeamData[];
 }
 
 // --- Matching ---
@@ -262,32 +267,45 @@ async function main() {
     if (!entry.badgeUrl && p.teamImageUrl) entry.badgeUrl = p.teamImageUrl;
   }
 
-  // Build output
+  // Build output — only embed injury profiles for matched players;
+  // unmatched players will use the top-level leagueAverage at runtime.
   const teams: TeamData[] = [];
+  let matchedCount = 0;
+  let unmatchedCount = 0;
 
   for (const [teamName, { players, league, badgeUrl }] of teamMap) {
     const teamPlayers: PlayerData[] = [];
     for (const p of players) {
       const playerInjuries = matches.get(p.name);
-      const profile = playerInjuries
-        ? buildInjuryProfile(playerInjuries)
-        : leagueAvg;
-
-      teamPlayers.push({
+      const playerData: PlayerData = {
         name: p.name,
         position: p.position,
         age: p.age,
         overall: p.overall,
         avatarUrl: p.avatarUrl,
-        injuryProfile: profile,
-      });
+      };
+      if (playerInjuries) {
+        playerData.injuryProfile = buildInjuryProfile(playerInjuries);
+        matchedCount++;
+      } else {
+        unmatchedCount++;
+      }
+      teamPlayers.push(playerData);
     }
     teams.push({ name: teamName, league, badgeUrl, players: teamPlayers });
   }
 
+  const output: TeamsFile = { leagueAverage: leagueAvg, teams };
+
   mkdirSync(OUT_DIR, { recursive: true });
-  writeFileSync(join(OUT_DIR, "teams.json"), JSON.stringify(teams, null, 2));
-  console.log(`✓ Written teams.json (${teams.length} teams)`);
+  // Round floats to 4 decimal places to reduce file size
+  const json = JSON.stringify(output, (_key, value) =>
+    typeof value === "number" ? Math.round(value * 10000) / 10000 : value
+  );
+  writeFileSync(join(OUT_DIR, "teams.json"), json);
+  console.log(
+    `✓ Written teams.json (${teams.length} teams, ${matchedCount} matched, ${unmatchedCount} using league avg)`
+  );
 }
 
 if (process.argv[1]?.includes("process-data")) {

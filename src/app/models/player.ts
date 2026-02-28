@@ -20,3 +20,14 @@ export interface Team {
   badgeUrl?: string;
   players: Player[];
 }
+
+/** Shape of the raw teams.json file */
+export interface TeamsFile {
+  leagueAverage: InjuryProfile;
+  teams: Array<{
+    name: string;
+    league: string;
+    badgeUrl?: string;
+    players: Array<Omit<Player, 'injuryProfile'> & { injuryProfile?: InjuryProfile }>;
+  }>;
+}

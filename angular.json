@@ -61,7 +61,12 @@
               "buildTarget": "fifa-injuries:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "headers": {
+              "Cache-Control": "public, max-age=604800"
+            }
+          }
         },
         "test": {
           "builder": "@angular/build:unit-test"

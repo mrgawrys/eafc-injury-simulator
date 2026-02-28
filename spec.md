@@ -58,8 +58,9 @@ Columns: Name (with avatar), OVR (Overall Rating), Position, Age, Status, Detail
 
 - **Name**: Small circular player avatar (32px) next to the player name. Falls back to initials if no image available.
 - **OVR**: Color-coded badge — green (80+), yellow (70-79), gray (<70). Shows "—" for unmatched players.
-- **Status**: Three states rendered as colored pills:
+- **Status**: Four states rendered as colored pills:
   - "Available" (green)
+  - "Recovering" (amber) — player returned from injury, still in recovery period with 1.5× injury risk
   - "Returning Soon" (yellow) — player returns within 3 days
   - "Injured" (red)
 - **Details**: For injured players, shows injury type and return date (e.g., "Hamstring Injury · returns 2025-03-15").
@@ -73,8 +74,9 @@ Columns: Name (with avatar), OVR (Overall Rating), Position, Age, Status, Detail
 - Iterates each day from current date to target date.
 - Each day: recovers players whose return date has passed, then rolls injury probability for each healthy player.
 - Injury probability per day = `injuriesPerSeason / 365`.
-- Injury duration = Box-Muller normal distribution (mean + z * stddev), minimum 1 day.
+- Injury duration = Box-Muller normal distribution (mean + z * stddev), minimum 1 day, maximum 120 days.
 - Injury type = weighted random selection from the player's historical injury type distribution.
+- **Recovery period**: When a player returns from injury, they enter a recovery period of 30% of their injury duration (clamped to 3–14 days). During recovery, injury probability is multiplied by 1.5×. The "Recovering" status and end date are shown in the squad table.
 
 ---
 

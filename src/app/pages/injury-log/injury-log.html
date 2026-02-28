@@ -1,0 +1,41 @@
+<div class="mb-6 flex items-center justify-between">
+  <div>
+    <h2 class="text-2xl font-bold">Injury Log</h2>
+    <p class="text-muted-foreground">{{ teamName() }} &middot; {{ sortedInjuries().length }} total injuries</p>
+  </div>
+  <a
+    routerLink="/dashboard"
+    class="rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent"
+  >
+    Back to Dashboard
+  </a>
+</div>
+
+@if (sortedInjuries().length === 0) {
+  <p class="text-muted-foreground">No injuries recorded yet. Advance time on the dashboard to simulate injuries.</p>
+} @else {
+  <div class="rounded-lg border">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b bg-muted/50">
+          <th class="px-4 py-3 text-left font-medium">Player</th>
+          <th class="px-4 py-3 text-left font-medium">Injury Type</th>
+          <th class="px-4 py-3 text-left font-medium">Date Injured</th>
+          <th class="px-4 py-3 text-left font-medium">Days Missed</th>
+          <th class="px-4 py-3 text-left font-medium">Return Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (injury of sortedInjuries(); track $index) {
+          <tr class="border-b last:border-0">
+            <td class="px-4 py-3 font-medium">{{ injury.playerName }}</td>
+            <td class="px-4 py-3">{{ injury.type }}</td>
+            <td class="px-4 py-3">{{ injury.startDate }}</td>
+            <td class="px-4 py-3">{{ injury.daysMissed }}</td>
+            <td class="px-4 py-3">{{ injury.returnDate }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

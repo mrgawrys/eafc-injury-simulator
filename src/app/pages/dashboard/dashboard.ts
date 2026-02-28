@@ -67,6 +67,37 @@ export class DashboardComponent implements OnInit {
     return rows.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
   });
 
+  sortColumn = signal<string | null>(null);
+  sortDirection = signal<'asc' | 'desc' | null>(null);
+
+  sortedPlayers = computed<PlayerRow[]>(() => {
+    const rows = this.players();
+    const col = this.sortColumn();
+    const dir = this.sortDirection();
+    if (!col || !dir) return rows;
+
+    return [...rows].sort((a, b) => {
+      let valA: string | number;
+      let valB: string | number;
+
+      switch (col) {
+        case 'name': valA = a.name; valB = b.name; break;
+        case 'overall': valA = a.overall ?? 0; valB = b.overall ?? 0; break;
+        case 'position': valA = a.position; valB = b.position; break;
+        case 'age': valA = a.age; valB = b.age; break;
+        case 'status': {
+          const order: Record<string, number> = { injured: 0, 'returning-soon': 1, available: 2 };
+          valA = order[a.status]; valB = order[b.status]; break;
+        }
+        default: return 0;
+      }
+
+      if (valA < valB) return dir === 'asc' ? -1 : 1;
+      if (valA > valB) return dir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  });
+
   injuredCount = computed(() => this.players().filter((p) => p.status !== "available").length);
   availableCount = computed(() => this.players().filter((p) => p.status === "available").length);
 
@@ -139,6 +170,25 @@ export class DashboardComponent implements OnInit {
 
   onDateInput(event: Event) {
     this.targetDate.set((event.target as HTMLInputElement).value);
+  }
+
+  toggleSort(column: string) {
+    if (this.sortColumn() === column) {
+      if (this.sortDirection() === 'asc') {
+        this.sortDirection.set('desc');
+      } else {
+        this.sortColumn.set(null);
+        this.sortDirection.set(null);
+      }
+    } else {
+      this.sortColumn.set(column);
+      this.sortDirection.set('asc');
+    }
+  }
+
+  sortIndicator(column: string): string {
+    if (this.sortColumn() !== column) return '';
+    return this.sortDirection() === 'asc' ? ' ▲' : ' ▼';
   }
 
   private addDays(date: string, days: number): string {

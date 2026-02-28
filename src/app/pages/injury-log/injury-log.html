@@ -18,11 +18,21 @@
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b bg-muted/50">
-          <th class="px-4 py-3 text-left font-medium">Player</th>
-          <th class="px-4 py-3 text-left font-medium">Injury Type</th>
-          <th class="px-4 py-3 text-left font-medium">Date Injured</th>
-          <th class="px-4 py-3 text-left font-medium">Days Missed</th>
-          <th class="px-4 py-3 text-left font-medium">Return Date</th>
+          <th class="px-4 py-3 text-left font-medium select-none cursor-pointer" (click)="toggleSort('playerName')">
+            Player{{ sortIndicator('playerName') }}
+          </th>
+          <th class="px-4 py-3 text-left font-medium select-none cursor-pointer" (click)="toggleSort('type')">
+            Injury Type{{ sortIndicator('type') }}
+          </th>
+          <th class="px-4 py-3 text-left font-medium select-none cursor-pointer" (click)="toggleSort('startDate')">
+            Date Injured{{ sortIndicator('startDate') }}
+          </th>
+          <th class="px-4 py-3 text-left font-medium select-none cursor-pointer" (click)="toggleSort('daysMissed')">
+            Days Missed{{ sortIndicator('daysMissed') }}
+          </th>
+          <th class="px-4 py-3 text-left font-medium select-none cursor-pointer" (click)="toggleSort('returnDate')">
+            Return Date{{ sortIndicator('returnDate') }}
+          </th>
         </tr>
       </thead>
       <tbody>

@@ -34,16 +34,26 @@
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b bg-muted/50">
-          <th class="px-4 py-3 text-left font-medium">Name</th>
-          <th class="px-4 py-3 text-left font-medium">OVR</th>
-          <th class="px-4 py-3 text-left font-medium">Position</th>
-          <th class="px-4 py-3 text-left font-medium">Age</th>
-          <th class="px-4 py-3 text-left font-medium">Status</th>
+          <th class="px-4 py-3 text-left font-medium select-none cursor-pointer" (click)="toggleSort('name')">
+            Name{{ sortIndicator('name') }}
+          </th>
+          <th class="px-4 py-3 text-left font-medium select-none cursor-pointer" (click)="toggleSort('overall')">
+            OVR{{ sortIndicator('overall') }}
+          </th>
+          <th class="px-4 py-3 text-left font-medium select-none cursor-pointer" (click)="toggleSort('position')">
+            Position{{ sortIndicator('position') }}
+          </th>
+          <th class="px-4 py-3 text-left font-medium select-none cursor-pointer" (click)="toggleSort('age')">
+            Age{{ sortIndicator('age') }}
+          </th>
+          <th class="px-4 py-3 text-left font-medium select-none cursor-pointer" (click)="toggleSort('status')">
+            Status{{ sortIndicator('status') }}
+          </th>
           <th class="px-4 py-3 text-left font-medium">Details</th>
         </tr>
       </thead>
       <tbody>
-        @for (player of players(); track player.name) {
+        @for (player of sortedPlayers(); track player.name) {
           <tr class="border-b last:border-0">
             <td class="px-4 py-3 font-medium">{{ player.name }}</td>
             <td class="px-4 py-3">

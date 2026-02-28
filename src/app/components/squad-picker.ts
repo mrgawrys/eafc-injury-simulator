@@ -1,9 +1,11 @@
 import { Component, computed, effect, input, output, signal } from '@angular/core';
+import { PlayerListItemComponent } from './player-list-item';
 import type { Player } from '../models/player';
 
 @Component({
   selector: 'app-squad-picker',
   standalone: true,
+  imports: [PlayerListItemComponent],
   template: `
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" (click)="dismissable() && cancel.emit()">
       <div
@@ -34,15 +36,20 @@ import type { Player } from '../models/player';
         </div>
 
         <div class="space-y-1">
-          @for (player of players(); track player.name) {
+          @for (player of sortedPlayers(); track player.name) {
             @let playerId = teamName() + '__' + player.name;
             <button
-              class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors"
+              class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors"
               [class]="selectedIds().has(playerId) ? 'bg-primary/10 text-primary' : 'hover:bg-accent'"
               (click)="togglePlayer(playerId)"
             >
-              <span>{{ player.name }}</span>
-              <span class="text-xs text-muted-foreground">{{ player.position }}</span>
+              <app-player-list-item
+                [name]="player.name"
+                [avatarUrl]="player.avatarUrl"
+                [overall]="player.overall"
+                [position]="player.position"
+                [fatigueScore]="playerFatigue()[playerId]"
+              />
             </button>
           }
         </div>
@@ -57,12 +64,17 @@ export class SquadPickerComponent {
   title = input('Select Starting XI');
   confirmLabel = input('Save');
   dismissable = input(true);
+  playerFatigue = input<Record<string, number>>({});
 
   save = output<Set<string>>();
   cancel = output<void>();
 
   selectedIds = signal<Set<string>>(new Set());
   selectedCount = computed(() => this.selectedIds().size);
+
+  sortedPlayers = computed(() =>
+    [...this.players()].sort((a, b) => (b.overall ?? 0) - (a.overall ?? 0))
+  );
 
   constructor() {
     effect(() => {

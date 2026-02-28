@@ -5,6 +5,7 @@ import { StorageService } from "../../services/storage";
 import { SimulationService } from "../../services/simulation";
 import { FatigueService } from "../../services/fatigue";
 import { PlayerAvatarComponent } from "../../components/player-avatar";
+import { PlayerListItemComponent } from "../../components/player-list-item";
 import { SquadPickerComponent } from "../../components/squad-picker";
 import type { GameState } from "../../models/game-state";
 import type { Player } from "../../models/player";
@@ -27,7 +28,7 @@ interface PlayerRow {
 @Component({
   selector: "app-dashboard",
   standalone: true,
-  imports: [RouterLink, PlayerAvatarComponent, SquadPickerComponent],
+  imports: [RouterLink, PlayerAvatarComponent, PlayerListItemComponent, SquadPickerComponent],
   templateUrl: "./dashboard.html",
 })
 export class DashboardComponent implements OnInit {

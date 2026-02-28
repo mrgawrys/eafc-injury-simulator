@@ -179,23 +179,29 @@
                 @let playerId = teamName() + '__' + player.name;
                 @let role = matchSquad()[playerId] ?? 'rested';
                 <button
-                  class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors"
+                  class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors"
                   [class]="role === 'starter' ? 'bg-primary/10' : role === 'sub' ? 'bg-blue-50' : ''"
                   [disabled]="player.status === 'injured'"
                   (click)="cycleRole(playerId)"
                 >
-                  <span [class.text-muted-foreground]="player.status === 'injured'">
-                    {{ player.name }}
-                  </span>
-                  <span class="text-xs font-medium"
-                    [class]="role === 'starter' ? 'text-primary' : role === 'sub' ? 'text-blue-600' : 'text-muted-foreground'"
+                  <app-player-list-item
+                    [name]="player.name"
+                    [avatarUrl]="player.avatarUrl"
+                    [overall]="player.overall"
+                    [position]="player.position"
+                    [fatigueScore]="player.fatigueScore"
+                    [muted]="player.status === 'injured'"
                   >
-                    @if (player.status === 'injured') {
-                      Injured
-                    } @else {
-                      {{ role === 'starter' ? 'Starter' : role === 'sub' ? 'Sub' : 'Rested' }}
-                    }
-                  </span>
+                    <span class="text-xs font-medium"
+                      [class]="role === 'starter' ? 'text-primary' : role === 'sub' ? 'text-blue-600' : 'text-muted-foreground'"
+                    >
+                      @if (player.status === 'injured') {
+                        Injured
+                      } @else {
+                        {{ role === 'starter' ? 'Starter' : role === 'sub' ? 'Sub' : 'Rested' }}
+                      }
+                    </span>
+                  </app-player-list-item>
                 </button>
               }
             </div>
@@ -290,6 +296,7 @@
       [title]="initialSquadPick() ? 'Select Starting XI' : 'Edit Starting XI'"
       [confirmLabel]="initialSquadPick() ? 'Start Season' : 'Save'"
       [dismissable]="!initialSquadPick()"
+      [playerFatigue]="gameState()!.playerFatigue"
       (save)="saveSquad($event)"
       (cancel)="cancelEditSquad()"
     />

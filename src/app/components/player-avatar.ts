@@ -9,6 +9,7 @@ import { Component, computed, input, signal } from '@angular/core';
         [src]="avatarUrl()"
         [alt]="name()"
         loading="lazy"
+        referrerpolicy="no-referrer"
         (error)="imgError.set(true)"
         class="rounded-full object-cover bg-muted"
         [class]="sizeClass()"

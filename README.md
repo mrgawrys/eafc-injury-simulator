@@ -17,7 +17,7 @@ npm run setup-data
 ```
 
 `setup-data` downloads three CSV datasets (~8MB total) and processes them into JSON:
-- **FC 25 roster** — 15,800+ players from SoFIFA
+- **FC 26 roster** — 18,000+ players from SoFIFA
 - **Transfermarkt injury history** — 143,000+ injury records
 - **Transfermarkt player profiles** — maps player IDs to names for joining
 
@@ -26,7 +26,7 @@ Players are fuzzy-matched between datasets. Those with injury history get person
 ### Manual data fallback
 
 If auto-download fails, manually place these files in `data-raw/`:
-- `roster.csv` from [Kaggle FC25 dataset](https://www.kaggle.com/datasets/nyagami/ea-sports-fc-25-database-ratings-and-stats)
+- `roster.csv` from [Kaggle FC26 dataset](https://www.kaggle.com/datasets/rovnez/fc-26-fifa-26-player-data)
 - `injuries.csv` and `profiles.csv` from [salimt/football-datasets](https://github.com/salimt/football-datasets)
 
 Then run `npm run process-data`.

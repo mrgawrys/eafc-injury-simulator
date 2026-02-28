@@ -13,11 +13,11 @@ const SOURCES = {
   // Transfermarkt player profiles — maps player_id to name/club for joining with injuries
   profiles:
     "https://raw.githubusercontent.com/salimt/football-datasets/main/datalake/transfermarkt/player_profiles/player_profiles.csv",
-  // FC 25 roster — sourced from PabloJRW's FC25-Players-ETL repo (SoFIFA data).
+  // FC 26 roster — sourced from ismailoksuz's EAFC26-DataHub repo (SoFIFA data).
   // If this link breaks, download manually from:
-  // https://www.kaggle.com/datasets/nyagami/ea-sports-fc-25-database-ratings-and-stats
+  // https://www.kaggle.com/datasets/rovnez/fc-26-fifa-26-player-data
   roster:
-    "https://raw.githubusercontent.com/PabloJRW/FC25-Players-ETL/main/extraction/raw_data/fc25players_10_21_2024.csv",
+    "https://raw.githubusercontent.com/ismailoksuz/EAFC26-DataHub/main/data/players.csv",
 };
 
 function download(url: string, dest: string): void {

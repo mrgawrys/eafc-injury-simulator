@@ -2,7 +2,7 @@
   <div class="mb-6 flex items-center justify-between">
     <div class="flex items-center gap-4">
       @if (teamBadgeUrl()) {
-        <img [src]="teamBadgeUrl()" [alt]="teamName()" class="h-12 w-12 object-contain" />
+        <img [src]="teamBadgeUrl()" [alt]="teamName()" class="h-12 w-12 object-contain" referrerpolicy="no-referrer" />
       }
       <div>
         <h2 class="text-2xl font-bold">{{ teamName() }}</h2>

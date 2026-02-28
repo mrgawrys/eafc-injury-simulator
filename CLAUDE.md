@@ -16,7 +16,7 @@ Formatting: Prettier with 100-char width, single quotes, Angular HTML parser.
 
 ## Architecture
 
-Angular 21 standalone-component app that simulates realistic squad injuries for FC 25 teams using Transfermarkt injury data.
+Angular 21 standalone-component app that simulates realistic squad injuries for FC 26 teams using Transfermarkt injury data.
 
 ### Routing (`src/app/app.routes.ts`)
 

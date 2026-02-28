@@ -7,7 +7,7 @@
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
           @if (getTeamBadgeUrl(save.gameState.teamName); as badge) {
-            <img [src]="badge" [alt]="save.gameState.teamName" class="h-12 w-12 object-contain" loading="lazy" />
+            <img [src]="badge" [alt]="save.gameState.teamName" class="h-12 w-12 object-contain" loading="lazy" referrerpolicy="no-referrer" />
           }
           <div>
             <h2 class="text-lg font-semibold">{{ save.name }}</h2>
@@ -52,7 +52,7 @@
             >
               <div class="flex items-center gap-3">
                 @if (getTeamBadgeUrl(s.gameState.teamName); as badge) {
-                  <img [src]="badge" [alt]="s.gameState.teamName" class="h-8 w-8 object-contain" loading="lazy" />
+                  <img [src]="badge" [alt]="s.gameState.teamName" class="h-8 w-8 object-contain" loading="lazy" referrerpolicy="no-referrer" />
                 }
                 <div>
                   <div class="font-medium">{{ s.name }}</div>
@@ -91,7 +91,7 @@
         (click)="openNewSeasonDialog(team.name)"
       >
         @if (team.badgeUrl) {
-          <img [src]="team.badgeUrl" [alt]="team.name" class="h-10 w-10 object-contain" loading="lazy" />
+          <img [src]="team.badgeUrl" [alt]="team.name" class="h-10 w-10 object-contain" loading="lazy" referrerpolicy="no-referrer" />
         }
         <div>
           <div class="font-semibold">{{ team.name }}</div>

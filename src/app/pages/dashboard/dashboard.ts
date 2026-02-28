@@ -293,9 +293,15 @@ export class DashboardComponent implements OnInit {
 
     this.matchSquad.update(squad => {
       const current = squad[playerId] ?? 'rested';
-      const next: MatchRole =
-        current === 'rested' ? 'starter' :
-        current === 'starter' ? 'sub' : 'rested';
+      const starterCount = Object.values(squad).filter(r => r === 'starter').length;
+      let next: MatchRole;
+      if (current === 'rested') {
+        next = starterCount < 11 ? 'starter' : 'sub';
+      } else if (current === 'starter') {
+        next = 'sub';
+      } else {
+        next = 'rested';
+      }
       return { ...squad, [playerId]: next };
     });
   }

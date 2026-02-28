@@ -48,3 +48,10 @@
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
 }
+
+button,
+a,
+[role='button'],
+[tabindex='0'] {
+  cursor: pointer;
+}

@@ -1,25 +1,67 @@
 @if (!loaded()) {
   <p class="text-muted-foreground">Loading team data...</p>
 } @else {
-  @if (hasActiveGame()) {
-    <div class="mb-8 rounded-lg border bg-card p-6">
-      <h2 class="text-lg font-semibold">Active Season</h2>
-      <p class="mt-1 text-muted-foreground">You have an ongoing season with <strong>{{ activeTeamName() }}</strong>.</p>
-      <div class="mt-4 flex gap-3">
-        <button
-          class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          (click)="continueGame()"
-        >
-          Continue Season
-        </button>
-        <button
-          class="rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent"
-          (click)="hasActiveGame.set(false)"
-        >
-          New Season
-        </button>
+  <!-- Latest Save Card -->
+  @if (latestSave(); as save) {
+    <div class="mb-6 rounded-lg border bg-card p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-semibold">{{ save.name }}</h2>
+          <p class="mt-1 text-sm text-muted-foreground">
+            {{ save.gameState.teamName }} &middot; {{ save.gameState.currentDate }}
+            &middot; {{ save.gameState.activeInjuries.length }} active injuries
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <button
+            class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            (click)="loadSave(save)"
+          >
+            Continue
+          </button>
+          <button
+            class="rounded-md border border-destructive px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
+            (click)="deleteSave(save, $event)"
+          >
+            Delete
+          </button>
+        </div>
       </div>
     </div>
+
+    <!-- Show all saves toggle -->
+    @if (olderSaves().length > 0) {
+      <button
+        class="mb-6 text-sm font-medium text-muted-foreground hover:text-foreground"
+        (click)="showAllSaves.set(!showAllSaves())"
+      >
+        {{ showAllSaves() ? 'Hide' : 'Show' }} all saves ({{ saves().length }})
+      </button>
+
+      @if (showAllSaves()) {
+        <div class="mb-6 space-y-3">
+          @for (s of olderSaves(); track s.id) {
+            <div
+              class="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-accent"
+              (click)="loadSave(s)"
+            >
+              <div>
+                <div class="font-medium">{{ s.name }}</div>
+                <div class="text-sm text-muted-foreground">
+                  {{ s.gameState.teamName }} &middot; {{ s.gameState.currentDate }}
+                </div>
+              </div>
+              <button
+                class="rounded-md border border-destructive px-3 py-1.5 text-xs text-destructive hover:bg-destructive/10"
+                (click)="deleteSave(s, $event)"
+              >
+                Delete
+              </button>
+            </div>
+          }
+        </div>
+      }
+    }
   }
 
   <h2 class="mb-4 text-2xl font-bold">Select a Team</h2>
@@ -36,7 +78,7 @@
     @for (team of filteredTeams(); track team.name) {
       <button
         class="rounded-lg border bg-card p-4 text-left transition-colors hover:bg-accent"
-        (click)="selectTeam(team.name)"
+        (click)="openNewSeasonDialog(team.name)"
       >
         <div class="font-semibold">{{ team.name }}</div>
         <div class="mt-1 text-sm text-muted-foreground">{{ team.players.length }} players</div>
@@ -46,5 +88,40 @@
 
   @if (filteredTeams().length === 0) {
     <p class="text-muted-foreground">No teams match "{{ searchQuery() }}"</p>
+  }
+
+  <!-- New Season Dialog -->
+  @if (showNewSeasonDialog()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" (click)="closeNewSeasonDialog()">
+      <div class="w-full max-w-md rounded-lg bg-background p-6 shadow-lg" (click)="$event.stopPropagation()">
+        <h3 class="text-lg font-semibold">Start New Season</h3>
+        <p class="mt-1 text-sm text-muted-foreground">{{ selectedTeamName() }}</p>
+
+        <div class="mt-4">
+          <label class="block text-sm font-medium">Save Name</label>
+          <input
+            type="text"
+            [value]="saveName()"
+            (input)="onSaveNameInput($event)"
+            class="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+
+        <div class="mt-6 flex justify-end gap-2">
+          <button
+            class="rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent"
+            (click)="closeNewSeasonDialog()"
+          >
+            Cancel
+          </button>
+          <button
+            class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            (click)="createSave()"
+          >
+            Start
+          </button>
+        </div>
+      </div>
+    </div>
   }
 }

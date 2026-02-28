@@ -6,7 +6,15 @@
 
 **Architecture:** Pure frontend Angular 21 app. A one-time Node setup script downloads CSV data (FC 25 rosters + Transfermarkt injuries), fuzzy-matches players, and outputs JSON files. The Angular app reads these JSON files, runs a daily injury probability simulation in the browser, and persists game state to localStorage.
 
-**Tech Stack:** Angular 21 (signals, standalone, zoneless, new control flow), Spartan UI, Tailwind CSS v4, Vitest, tsx (for data scripts)
+**Tech Stack:** Angular 21 (signals, standalone, zoneless, new control flow), Spartan UI, Tailwind CSS v4, tsx (for data scripts)
+
+> **Implementation Notes (updated during build):**
+> - **No tests** — testing skipped per user preference
+> - **CSV data sources changed** — the original Kaggle/GitHub URLs were dead. Actual sources:
+>   - Injuries: `salimt/football-datasets` repo (`player_injuries.csv`) — needs join with `player_profiles.csv` via `player_id`
+>   - Roster: `PabloJRW/FC25-Players-ETL` repo (`fc25players_10_21_2024.csv`) — columns: `first_name`, `last_name`, `common_name`, `team`, `position_short_label`, `birthdate`
+> - **Download uses `curl`** instead of Node `https.get` to handle GitHub LFS redirects reliably
+> - **Spartan UI** installed manually (CLI interactive prompts don't work in non-TTY) — `components.json` + theme CSS vars + path aliases set up by hand
 
 ---
 

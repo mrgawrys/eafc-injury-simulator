@@ -12,5 +12,10 @@ execFileSync("npx", ["tsx", join(__dirname, "download-data.ts")], {
   stdio: "inherit",
 });
 
-// Step 2 will be added after process-data.ts is implemented
+console.log("\n=== Step 2: Process data ===");
+execFileSync("npx", ["tsx", join(__dirname, "process-data.ts")], {
+  cwd: root,
+  stdio: "inherit",
+});
+
 console.log("\n=== Setup complete ===");

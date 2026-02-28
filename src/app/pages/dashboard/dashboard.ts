@@ -20,6 +20,7 @@ interface PlayerRow {
   injury?: Injury;
   fatigueBadge?: 'fresh' | 'fatigued' | 'high-risk' | null;
   fatigueScore?: number;
+  inSquad?: boolean;
 }
 
 @Component({
@@ -85,8 +86,11 @@ export class DashboardComponent implements OnInit {
       const fatigueBadge = fatigueScore !== undefined
         ? this.fatigueService.getBadge(fatigueScore)
         : undefined;
+      const inSquad = state.fatigueEnabled
+        ? state.defaultSquad.includes(playerId)
+        : undefined;
 
-      return { name: p.name, position: p.position, age: p.age, overall: p.overall, avatarUrl: p.avatarUrl, status, injury, fatigueBadge, fatigueScore };
+      return { name: p.name, position: p.position, age: p.age, overall: p.overall, avatarUrl: p.avatarUrl, status, injury, fatigueBadge, fatigueScore, inSquad };
     });
 
     const statusOrder: Record<string, number> = { injured: 0, "returning-soon": 1, available: 2 };

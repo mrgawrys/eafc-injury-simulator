@@ -20,7 +20,7 @@ export class TeamSelectionComponent implements OnInit {
   searchQuery = signal('');
   saves = signal<SaveSlot[]>([]);
   showAllSaves = signal(false);
-  fatigueEnabled = signal(false);
+  fatigueEnabled = signal(true);
 
   // New season dialog
   showNewSeasonDialog = signal(false);

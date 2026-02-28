@@ -12,7 +12,7 @@ export class DataService {
   async loadData(): Promise<void> {
     if (this._loaded()) return;
 
-    const res = await fetch('/data/teams.json');
+    const res = await fetch('data/teams.json');
     if (!res.ok) {
       throw new Error("Failed to load team data. Did you run 'npm run setup-data'?");
     }

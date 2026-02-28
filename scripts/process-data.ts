@@ -185,7 +185,7 @@ function parseRosterCsv(csv: string): RosterPlayer[] {
       const position = positions.split(",")[0]?.trim() || "";
       const clubTeamId = r["club_team_id"]?.replace(".0", "") || "";
       const badgeUrl = clubTeamId
-        ? `https://cdn.sofifa.net/meta/team/${clubTeamId}/120.png`
+        ? `https://cdn.futbin.com/content/fifa24/img/clubs/${clubTeamId}.png`
         : undefined;
 
       return {

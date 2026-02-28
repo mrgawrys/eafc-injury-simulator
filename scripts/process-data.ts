@@ -167,21 +167,23 @@ export function computeLeagueAverage(allInjuries: InjuryRecord[]): InjuryProfile
 
 function parseRosterCsv(csv: string): RosterPlayer[] {
   const records = parse(csv, { columns: true, skip_empty_lines: true });
-  return records.map((r: Record<string, string>) => {
-    const firstName = r["first_name"] || "";
-    const lastName = r["last_name"] || "";
-    const commonName = r["common_name"] || "";
-    const name = commonName || `${firstName} ${lastName}`.trim();
-    const birthdate = r["birthdate"] || "";
-    const age = birthdate ? Math.floor((Date.now() - new Date(birthdate).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 25;
+  return records
+    .filter((r: Record<string, string>) => r["gender_id"] === "0") // men only
+    .map((r: Record<string, string>) => {
+      const firstName = r["first_name"] || "";
+      const lastName = r["last_name"] || "";
+      const commonName = r["common_name"] || "";
+      const name = commonName || `${firstName} ${lastName}`.trim();
+      const birthdate = r["birthdate"] || "";
+      const age = birthdate ? Math.floor((Date.now() - new Date(birthdate).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 25;
 
-    return {
-      name,
-      team: r["team"] || "",
-      position: r["position_short_label"] || r["position"] || "",
-      age,
-    };
-  }).filter((p: RosterPlayer) => p.name && p.team);
+      return {
+        name,
+        team: r["team"] || "",
+        position: r["position_short_label"] || r["position"] || "",
+        age,
+      };
+    }).filter((p: RosterPlayer) => p.name && p.team);
 }
 
 function buildInjuryRecords(

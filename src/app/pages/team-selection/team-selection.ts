@@ -88,6 +88,10 @@ export class TeamSelectionComponent implements OnInit {
       seasonStartDate: today,
       activeInjuries: [],
       injuryHistory: [],
+      fatigueEnabled: false,
+      defaultSquad: [],
+      matchLog: [],
+      playerFatigue: {},
     };
 
     const slot: SaveSlot = {

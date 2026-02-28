@@ -28,7 +28,13 @@ export class LocalStorageService extends StorageService {
     const legacy = localStorage.getItem(LEGACY_KEY);
     if (!legacy) return;
 
-    const gameState: GameState = JSON.parse(legacy);
+    const gameState: GameState = {
+      fatigueEnabled: false,
+      defaultSquad: [],
+      matchLog: [],
+      playerFatigue: {},
+      ...JSON.parse(legacy),
+    };
     const now = new Date().toISOString();
     const slot: SaveSlot = {
       id: crypto.randomUUID(),

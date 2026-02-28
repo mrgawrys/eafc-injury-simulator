@@ -40,7 +40,7 @@ testem.log
 __screenshots__/
 
 # Generated data files (run npm run setup-data to populate)
-src/public/data/
+public/data/
 data-raw/
 
 # System files

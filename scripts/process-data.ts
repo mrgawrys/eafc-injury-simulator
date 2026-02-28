@@ -225,7 +225,7 @@ function buildInjuryRecords(
 
 async function main() {
   const RAW_DIR = join(__dirname, "..", "data-raw");
-  const OUT_DIR = join(__dirname, "..", "src", "public", "data");
+  const OUT_DIR = join(__dirname, "..", "public", "data");
 
   const rosterCsv = readFileSync(join(RAW_DIR, "roster.csv"), "utf-8");
   const injuriesCsv = readFileSync(join(RAW_DIR, "injuries.csv"), "utf-8");

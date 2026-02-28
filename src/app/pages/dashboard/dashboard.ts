@@ -83,7 +83,12 @@ export class DashboardComponent implements OnInit {
       switch (col) {
         case 'name': valA = a.name; valB = b.name; break;
         case 'overall': valA = a.overall ?? 0; valB = b.overall ?? 0; break;
-        case 'position': valA = a.position; valB = b.position; break;
+        case 'position': {
+          const posOrder: Record<string, number> = {
+            GK: 0, CB: 1, LB: 2, RB: 3, CDM: 4, CM: 5, LM: 6, RM: 7, CAM: 8, LW: 9, RW: 10, ST: 11,
+          };
+          valA = posOrder[a.position] ?? 99; valB = posOrder[b.position] ?? 99; break;
+        }
         case 'age': valA = a.age; valB = b.age; break;
         case 'status': {
           const order: Record<string, number> = { injured: 0, 'returning-soon': 1, available: 2 };

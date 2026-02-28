@@ -10,6 +10,9 @@ const RAW_DIR = join(__dirname, "..", "data-raw");
 const SOURCES = {
   injuries:
     "https://raw.githubusercontent.com/salimt/football-datasets/main/datalake/transfermarkt/player_injuries/player_injuries.csv",
+  // Transfermarkt player profiles — maps player_id to name/club for joining with injuries
+  profiles:
+    "https://raw.githubusercontent.com/salimt/football-datasets/main/datalake/transfermarkt/player_profiles/player_profiles.csv",
   // FC 25 roster — sourced from PabloJRW's FC25-Players-ETL repo (SoFIFA data).
   // If this link breaks, download manually from:
   // https://www.kaggle.com/datasets/nyagami/ea-sports-fc-25-database-ratings-and-stats

@@ -13,6 +13,8 @@ export interface RosterPlayer {
   position: string;
   age: number;
   overall?: number;
+  avatarUrl?: string;
+  teamImageUrl?: string;
 }
 
 export interface InjuryRecord {
@@ -35,12 +37,14 @@ export interface PlayerData {
   position: string;
   age: number;
   overall?: number;
+  avatarUrl?: string;
   injuryProfile: InjuryProfile;
 }
 
 export interface TeamData {
   name: string;
   league: string;
+  badgeUrl?: string;
   players: PlayerData[];
 }
 
@@ -185,6 +189,8 @@ function parseRosterCsv(csv: string): RosterPlayer[] {
         position: r["position_short_label"] || r["position"] || "",
         age,
         overall: parseInt(r["overall_rating"], 10) || undefined,
+        avatarUrl: r["avatar_url"] || undefined,
+        teamImageUrl: r["team_image_url"] || undefined,
       };
     }).filter((p: RosterPlayer) => p.name && p.team);
 }
@@ -247,16 +253,18 @@ async function main() {
   const leagueAvg = computeLeagueAverage(injuries);
 
   // Group roster by team
-  const teamMap = new Map<string, { players: RosterPlayer[]; league: string }>();
+  const teamMap = new Map<string, { players: RosterPlayer[]; league: string; badgeUrl?: string }>();
   for (const p of roster) {
-    if (!teamMap.has(p.team)) teamMap.set(p.team, { players: [], league: "" });
-    teamMap.get(p.team)!.players.push(p);
+    if (!teamMap.has(p.team)) teamMap.set(p.team, { players: [], league: "", badgeUrl: undefined });
+    const entry = teamMap.get(p.team)!;
+    entry.players.push(p);
+    if (!entry.badgeUrl && p.teamImageUrl) entry.badgeUrl = p.teamImageUrl;
   }
 
   // Build output
   const teams: TeamData[] = [];
 
-  for (const [teamName, { players, league }] of teamMap) {
+  for (const [teamName, { players, league, badgeUrl }] of teamMap) {
     const teamPlayers: PlayerData[] = [];
     for (const p of players) {
       const playerInjuries = matches.get(p.name);
@@ -269,10 +277,11 @@ async function main() {
         position: p.position,
         age: p.age,
         overall: p.overall,
+        avatarUrl: p.avatarUrl,
         injuryProfile: profile,
       });
     }
-    teams.push({ name: teamName, league, players: teamPlayers });
+    teams.push({ name: teamName, league, badgeUrl, players: teamPlayers });
   }
 
   mkdirSync(OUT_DIR, { recursive: true });

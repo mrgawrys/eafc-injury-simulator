@@ -1,11 +1,16 @@
 @if (gameState()) {
   <div class="mb-6 flex items-center justify-between">
-    <div>
-      <h2 class="text-2xl font-bold">{{ teamName() }}</h2>
-      <p class="text-muted-foreground">
-        Season Date: <strong>{{ currentDate() }}</strong>
-        &middot; {{ availableCount() }} available &middot; {{ injuredCount() }} injured
-      </p>
+    <div class="flex items-center gap-4">
+      @if (teamBadgeUrl()) {
+        <img [src]="teamBadgeUrl()" [alt]="teamName()" class="h-12 w-12 object-contain" />
+      }
+      <div>
+        <h2 class="text-2xl font-bold">{{ teamName() }}</h2>
+        <p class="text-muted-foreground">
+          Season Date: <strong>{{ currentDate() }}</strong>
+          &middot; {{ availableCount() }} available &middot; {{ injuredCount() }} injured
+        </p>
+      </div>
     </div>
     <div class="flex gap-2">
       <button
@@ -50,12 +55,20 @@
             Status{{ sortIndicator('status') }}
           </th>
           <th class="px-4 py-3 text-left font-medium">Details</th>
+          @if (fatigueEnabled()) {
+            <th class="px-4 py-3 text-left font-medium">Fatigue</th>
+          }
         </tr>
       </thead>
       <tbody>
         @for (player of sortedPlayers(); track player.name) {
           <tr class="border-b last:border-0">
-            <td class="px-4 py-3 font-medium">{{ player.name }}</td>
+            <td class="px-4 py-3 font-medium">
+              <div class="flex items-center gap-2">
+                <app-player-avatar [name]="player.name" [avatarUrl]="player.avatarUrl" size="sm" />
+                {{ player.name }}
+              </div>
+            </td>
             <td class="px-4 py-3">
               @if (player.overall) {
                 <span
@@ -142,7 +155,13 @@
                 <h4 class="text-sm font-semibold text-destructive">New Injuries</h4>
                 <ul class="mt-1 space-y-1 text-sm">
                   @for (inj of lastResult()!.newInjuries; track inj.playerId) {
-                    <li>{{ inj.playerName }} — {{ inj.type }} ({{ inj.daysMissed }} days)</li>
+                    <li class="flex items-center gap-3">
+                      <app-player-avatar [name]="inj.playerName" [avatarUrl]="getPlayerAvatarUrl(inj.playerName)" size="lg" />
+                      <div>
+                        <span class="font-medium">{{ inj.playerName }}</span>
+                        <span class="text-muted-foreground"> — {{ inj.type }} ({{ inj.daysMissed }} days)</span>
+                      </div>
+                    </li>
                   }
                 </ul>
               </div>
@@ -155,7 +174,10 @@
                 <h4 class="text-sm font-semibold text-green-600">Recovered</h4>
                 <ul class="mt-1 space-y-1 text-sm">
                   @for (name of lastResult()!.recovered; track name) {
-                    <li>{{ name }}</li>
+                    <li class="flex items-center gap-3">
+                      <app-player-avatar [name]="name" [avatarUrl]="getPlayerAvatarUrl(name)" size="lg" />
+                      {{ name }}
+                    </li>
                   }
                 </ul>
               </div>

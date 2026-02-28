@@ -181,4 +181,8 @@ export class TeamSelectionComponent implements OnInit {
   onSaveNameInput(event: Event) {
     this.saveName.set((event.target as HTMLInputElement).value);
   }
+
+  getTeamBadgeUrl(teamName: string): string | undefined {
+    return this.dataService.getTeam(teamName)?.badgeUrl;
+  }
 }

@@ -3,38 +3,52 @@ import { Router, RouterLink } from "@angular/router";
 import { DataService } from "../../services/data";
 import { StorageService } from "../../services/storage";
 import { SimulationService } from "../../services/simulation";
+import { FatigueService } from "../../services/fatigue";
+import { PlayerAvatarComponent } from "../../components/player-avatar";
 import type { GameState } from "../../models/game-state";
 import type { Player } from "../../models/player";
 import type { Injury } from "../../models/injury";
+import type { MatchRole, PlayerMatchEntry } from "../../models/fatigue";
 
 interface PlayerRow {
   name: string;
   position: string;
   age: number;
   overall?: number;
+  avatarUrl?: string;
   status: "available" | "injured" | "returning-soon";
   injury?: Injury;
+  fatigueBadge?: 'fresh' | 'fatigued' | 'high-risk' | null;
+  fatigueScore?: number;
 }
 
 @Component({
   selector: "app-dashboard",
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, PlayerAvatarComponent],
   templateUrl: "./dashboard.html",
 })
 export class DashboardComponent implements OnInit {
   private dataService = inject(DataService);
   private storageService = inject(StorageService);
   private simulationService = inject(SimulationService);
+  private fatigueService = inject(FatigueService);
   private router = inject(Router);
 
   gameState = signal<GameState | null>(null);
   showAdvanceDialog = signal(false);
   targetDate = signal("");
   lastResult = signal<{ newInjuries: Injury[]; recovered: string[] } | null>(null);
+  matchSquad = signal<Record<string, MatchRole>>({});
+  advanceStep = signal<'squad' | 'date' | 'result'>('date');
 
   teamName = computed(() => this.gameState()?.teamName ?? "");
   currentDate = computed(() => this.gameState()?.currentDate ?? "");
+  fatigueEnabled = computed(() => this.gameState()?.fatigueEnabled ?? false);
+  teamBadgeUrl = computed(() => {
+    const name = this.teamName();
+    return name ? this.dataService.getTeam(name)?.badgeUrl : undefined;
+  });
 
   players = computed<PlayerRow[]>(() => {
     const state = this.gameState();
@@ -60,7 +74,14 @@ export class DashboardComponent implements OnInit {
         status = daysUntilReturn <= 3 ? "returning-soon" : "injured";
       }
 
-      return { name: p.name, position: p.position, age: p.age, overall: p.overall, status, injury };
+      const fatigueScore = state.fatigueEnabled
+        ? (state.playerFatigue[playerId] ?? 30)
+        : undefined;
+      const fatigueBadge = fatigueScore !== undefined
+        ? this.fatigueService.getBadge(fatigueScore)
+        : undefined;
+
+      return { name: p.name, position: p.position, age: p.age, overall: p.overall, avatarUrl: p.avatarUrl, status, injury, fatigueBadge, fatigueScore };
     });
 
     const statusOrder: Record<string, number> = { injured: 0, "returning-soon": 1, available: 2 };
@@ -119,6 +140,12 @@ export class DashboardComponent implements OnInit {
   openAdvanceDialog() {
     this.lastResult.set(null);
     this.targetDate.set(this.addDays(this.gameState()?.currentDate ?? "", 3));
+    if (this.fatigueEnabled()) {
+      this.initMatchSquad();
+      this.advanceStep.set('squad');
+    } else {
+      this.advanceStep.set('date');
+    }
     this.showAdvanceDialog.set(true);
   }
 
@@ -136,12 +163,33 @@ export class DashboardComponent implements OnInit {
     const toDate = this.targetDate();
     if (toDate <= state.currentDate) return;
 
+    let updatedFatigue = state.playerFatigue;
+    const newMatchLog = [...state.matchLog];
+
+    if (state.fatigueEnabled) {
+      const squad = this.matchSquad();
+      const entries: PlayerMatchEntry[] = Object.entries(squad).map(([playerId, role]) => ({
+        playerId,
+        role,
+      }));
+
+      // Apply match load to fatigue before simulating
+      const fatigueAfterMatch = { ...state.playerFatigue };
+      for (const entry of entries) {
+        const current = fatigueAfterMatch[entry.playerId] ?? 30;
+        fatigueAfterMatch[entry.playerId] = this.fatigueService.applyMatchLoad(current, entry.role);
+      }
+      updatedFatigue = fatigueAfterMatch;
+      newMatchLog.push({ date: state.currentDate, players: entries });
+    }
+
     const result = this.simulationService.simulateRange(
       team.players,
       state.activeInjuries,
       state.teamName,
       state.currentDate,
-      toDate
+      toDate,
+      state.fatigueEnabled ? updatedFatigue : undefined
     );
 
     const newState: GameState = {
@@ -149,6 +197,8 @@ export class DashboardComponent implements OnInit {
       currentDate: toDate,
       activeInjuries: result.activeInjuries,
       injuryHistory: [...state.injuryHistory, ...result.newInjuries],
+      matchLog: newMatchLog,
+      playerFatigue: result.updatedFatigue ?? state.playerFatigue,
     };
 
     const saveId = this.storageService.getActiveSaveId()!;
@@ -160,6 +210,7 @@ export class DashboardComponent implements OnInit {
     });
     this.gameState.set(newState);
     this.lastResult.set({ newInjuries: result.newInjuries, recovered: result.recovered });
+    this.advanceStep.set('result');
   }
 
   advanceToNextMatch() {
@@ -194,6 +245,54 @@ export class DashboardComponent implements OnInit {
   sortIndicator(column: string): string {
     if (this.sortColumn() !== column) return '';
     return this.sortDirection() === 'asc' ? ' ▲' : ' ▼';
+  }
+
+  getPlayerAvatarUrl(playerName: string): string | undefined {
+    const state = this.gameState();
+    if (!state) return undefined;
+    const team = this.dataService.getTeam(state.teamName);
+    return team?.players.find((p) => p.name === playerName)?.avatarUrl;
+  }
+
+  initMatchSquad() {
+    const state = this.gameState();
+    if (!state) return;
+    const team = this.dataService.getTeam(state.teamName);
+    if (!team) return;
+
+    const injuredIds = new Set(state.activeInjuries.map(i => i.playerId));
+    const squad: Record<string, MatchRole> = {};
+
+    for (const p of team.players) {
+      const id = `${state.teamName}__${p.name}`;
+      if (injuredIds.has(id)) {
+        squad[id] = 'rested';
+      } else if (state.defaultSquad.includes(id)) {
+        squad[id] = 'starter';
+      } else {
+        squad[id] = 'rested';
+      }
+    }
+    this.matchSquad.set(squad);
+  }
+
+  cycleRole(playerId: string) {
+    const state = this.gameState();
+    if (!state) return;
+    const injuredIds = new Set(state.activeInjuries.map(i => i.playerId));
+    if (injuredIds.has(playerId)) return;
+
+    this.matchSquad.update(squad => {
+      const current = squad[playerId] ?? 'rested';
+      const next: MatchRole =
+        current === 'rested' ? 'starter' :
+        current === 'starter' ? 'sub' : 'rested';
+      return { ...squad, [playerId]: next };
+    });
+  }
+
+  proceedToDate() {
+    this.advanceStep.set('date');
   }
 
   private addDays(date: string, days: number): string {

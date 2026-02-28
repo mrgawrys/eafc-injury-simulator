@@ -5,12 +5,17 @@
   @if (latestSave(); as save) {
     <div class="mb-6 rounded-lg border bg-card p-6">
       <div class="flex items-center justify-between">
-        <div>
-          <h2 class="text-lg font-semibold">{{ save.name }}</h2>
-          <p class="mt-1 text-sm text-muted-foreground">
-            {{ save.gameState.teamName }} &middot; {{ save.gameState.currentDate }}
-            &middot; {{ save.gameState.activeInjuries.length }} active injuries
-          </p>
+        <div class="flex items-center gap-4">
+          @if (getTeamBadgeUrl(save.gameState.teamName); as badge) {
+            <img [src]="badge" [alt]="save.gameState.teamName" class="h-12 w-12 object-contain" loading="lazy" />
+          }
+          <div>
+            <h2 class="text-lg font-semibold">{{ save.name }}</h2>
+            <p class="mt-1 text-sm text-muted-foreground">
+              {{ save.gameState.teamName }} &middot; {{ save.gameState.currentDate }}
+              &middot; {{ save.gameState.activeInjuries.length }} active injuries
+            </p>
+          </div>
         </div>
         <div class="flex gap-2">
           <button
@@ -45,10 +50,15 @@
               class="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-accent"
               (click)="loadSave(s)"
             >
-              <div>
-                <div class="font-medium">{{ s.name }}</div>
-                <div class="text-sm text-muted-foreground">
-                  {{ s.gameState.teamName }} &middot; {{ s.gameState.currentDate }}
+              <div class="flex items-center gap-3">
+                @if (getTeamBadgeUrl(s.gameState.teamName); as badge) {
+                  <img [src]="badge" [alt]="s.gameState.teamName" class="h-8 w-8 object-contain" loading="lazy" />
+                }
+                <div>
+                  <div class="font-medium">{{ s.name }}</div>
+                  <div class="text-sm text-muted-foreground">
+                    {{ s.gameState.teamName }} &middot; {{ s.gameState.currentDate }}
+                  </div>
                 </div>
               </div>
               <button
@@ -96,11 +106,16 @@
   <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
     @for (team of filteredTeams(); track team.name) {
       <button
-        class="rounded-lg border bg-card p-4 text-left transition-colors hover:bg-accent"
+        class="flex items-center gap-3 rounded-lg border bg-card p-4 text-left transition-colors hover:bg-accent"
         (click)="openNewSeasonDialog(team.name)"
       >
-        <div class="font-semibold">{{ team.name }}</div>
-        <div class="mt-1 text-sm text-muted-foreground">{{ team.players.length }} players</div>
+        @if (team.badgeUrl) {
+          <img [src]="team.badgeUrl" [alt]="team.name" class="h-10 w-10 object-contain" loading="lazy" />
+        }
+        <div>
+          <div class="font-semibold">{{ team.name }}</div>
+          <div class="mt-1 text-sm text-muted-foreground">{{ team.players.length }} players</div>
+        </div>
       </button>
     }
   </div>

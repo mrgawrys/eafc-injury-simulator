@@ -1,20 +1,24 @@
 import { Component, computed, inject, OnInit, signal } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
+import { DataService } from "../../services/data";
 import { StorageService } from "../../services/storage";
+import { PlayerAvatarComponent } from "../../components/player-avatar";
 import type { Injury } from "../../models/injury";
 
 @Component({
   selector: "app-injury-log",
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, PlayerAvatarComponent],
   templateUrl: "./injury-log.html",
 })
 export class InjuryLogComponent implements OnInit {
+  private dataService = inject(DataService);
   private storageService = inject(StorageService);
   private router = inject(Router);
 
   injuries = signal<Injury[]>([]);
   teamName = signal("");
+  private avatarMap = new Map<string, string>();
 
   sortColumn = signal<string | null>(null);
   sortDirection = signal<'asc' | 'desc' | null>(null);
@@ -68,7 +72,8 @@ export class InjuryLogComponent implements OnInit {
     return this.sortDirection() === 'asc' ? ' ▲' : ' ▼';
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    await this.dataService.loadData();
     const state = this.storageService.getActiveGameState();
     if (!state) {
       this.router.navigate(['/']);
@@ -76,5 +81,16 @@ export class InjuryLogComponent implements OnInit {
     }
     this.teamName.set(state.teamName);
     this.injuries.set(state.injuryHistory);
+
+    const team = this.dataService.getTeam(state.teamName);
+    if (team) {
+      for (const p of team.players) {
+        if (p.avatarUrl) this.avatarMap.set(p.name, p.avatarUrl);
+      }
+    }
+  }
+
+  getAvatarUrl(playerName: string): string | undefined {
+    return this.avatarMap.get(playerName);
   }
 }

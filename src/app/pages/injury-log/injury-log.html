@@ -38,7 +38,12 @@
       <tbody>
         @for (injury of sortedInjuries(); track $index) {
           <tr class="border-b last:border-0">
-            <td class="px-4 py-3 font-medium">{{ injury.playerName }}</td>
+            <td class="px-4 py-3 font-medium">
+              <div class="flex items-center gap-2">
+                <app-player-avatar [name]="injury.playerName" [avatarUrl]="getAvatarUrl(injury.playerName)" size="sm" />
+                {{ injury.playerName }}
+              </div>
+            </td>
             <td class="px-4 py-3">{{ injury.type }}</td>
             <td class="px-4 py-3">{{ injury.startDate }}</td>
             <td class="px-4 py-3">{{ injury.daysMissed }}</td>

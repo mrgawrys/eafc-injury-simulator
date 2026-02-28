@@ -23,18 +23,18 @@ Players without enough historical data fall back to **league-average profiles**.
 ### 1. Team Selection (Home Screen)
 
 **Continue a Save:**
-- The most recent save is displayed prominently at the top as a card showing: save name, team name, current in-game date, and count of active injuries.
+- The most recent save is displayed prominently at the top as a card showing: team badge, save name, team name, current in-game date, and count of active injuries.
 - A "Continue" button loads that save directly.
 - A "Delete" button removes the save (with click-event isolation so it doesn't trigger Continue).
 
 **Manage Multiple Saves:**
 - If 2+ saves exist, a "Show all saves (N)" toggle reveals the full list of older saves.
-- Each save row shows: save name, team name, current date. Clicking loads it. Each has a Delete button.
+- Each save row shows: team badge, save name, team name, current date. Clicking loads it. Each has a Delete button.
 - Saves are sorted by most recently updated.
 
 **Start a New Season:**
 - A search input filters the team list in real time (case-insensitive substring match).
-- Teams are displayed in a responsive grid (1 col mobile, 2 col tablet, 3 col desktop). Each card shows team name and player count.
+- Teams are displayed in a responsive grid (1 col mobile, 2 col tablet, 3 col desktop). Each card shows team badge, team name, and player count.
 - Clicking a team opens a "Start New Season" modal dialog:
   - Shows the selected team name.
   - Editable "Save Name" input, auto-filled with `"<TeamName> Save (<N>)"` where N increments per team.
@@ -50,12 +50,13 @@ Players without enough historical data fall back to **league-average profiles**.
 ### 2. Dashboard (Squad Management)
 
 **Header Bar:**
-- Team name, current in-game date, available player count, injured player count.
+- Team badge, team name, current in-game date, available player count, injured player count.
 - Three actions: "Advance Time" button (opens simulation dialog), "Injury Log" link, "Home" link.
 
 **Squad Table:**
-Columns: Name, OVR (Overall Rating), Position, Age, Status, Details.
+Columns: Name (with avatar), OVR (Overall Rating), Position, Age, Status, Details.
 
+- **Name**: Small circular player avatar (32px) next to the player name. Falls back to initials if no image available.
 - **OVR**: Color-coded badge — green (80+), yellow (70-79), gray (<70). Shows "—" for unmatched players.
 - **Status**: Three states rendered as colored pills:
   - "Available" (green)
@@ -66,7 +67,7 @@ Columns: Name, OVR (Overall Rating), Position, Age, Status, Details.
 
 **Advance Time Dialog (modal):**
 - **Before simulation**: Date picker (min = current date), "Advance" button, and a "Next Match (+3 days)" shortcut button.
-- **After simulation**: Shows the new date, lists any new injuries (player name, injury type, duration in days), lists recovered players, or shows "No new injuries!" in green. "Close" button dismisses.
+- **After simulation**: Shows the new date, lists any new injuries with larger player avatars (56px), injury type, and duration in days. Lists recovered players with larger avatars. Shows "No new injuries!" in green if none occurred. "Close" button dismisses.
 
 **Simulation Engine:**
 - Iterates each day from current date to target date.
@@ -82,8 +83,9 @@ Columns: Name, OVR (Overall Rating), Position, Age, Status, Details.
 **Header:** "Injury Log" title, team name, total injury count, "Back to Dashboard" link.
 
 **Injury Table:**
-Columns: Player, Injury Type, Date Injured, Days Missed, Return Date.
+Columns: Player (with avatar), Injury Type, Date Injured, Days Missed, Return Date.
 
+- **Player**: Small circular avatar (32px) next to the player name. Falls back to initials if no image available.
 - Shows all historical injuries for the active save, sorted newest-first by default.
 
 **Empty State:** "No injuries recorded yet. Advance time on the dashboard to simulate injuries."
@@ -124,7 +126,7 @@ Offline data processing (not part of the running app):
 4. Falls back to league-average profiles for unmatched players.
 5. Outputs a single `teams.json` containing all teams, players, and their injury profiles.
 
-Each player record includes: name, position, age, overall rating (from FC 25), and injury profile.
+Each player record includes: name, position, age, overall rating (from FC 25), avatar URL (FC 25 player portrait), and injury profile. Each team record includes a badge URL (FC 25 team image).
 
 ---
 

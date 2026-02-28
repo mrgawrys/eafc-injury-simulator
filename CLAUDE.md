@@ -40,6 +40,10 @@ Spartan-ng headless components (button, dialog, table, card, badge, etc.) aliase
 
 TypeScript scripts (run via `tsx`) that download CSVs from Kaggle/GitHub, fuzzy-match players between roster and injury datasets using Levenshtein distance (threshold ≤3), compute per-player injury profiles, and fall back to league averages for unmatched players. Output: `public/data/teams.json`.
 
+## Spec
+
+`spec.md` is the stack-agnostic feature specification for this app. After completing any task that adds, changes, or removes a feature, update `spec.md` to reflect the current state of the app.
+
 ## Conventions
 
 - All components use Angular standalone pattern (no NgModules)

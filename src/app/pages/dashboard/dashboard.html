@@ -19,6 +19,14 @@
       >
         Advance Time
       </button>
+      @if (fatigueEnabled()) {
+        <button
+          class="rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent"
+          (click)="openEditSquad()"
+        >
+          Edit XI
+        </button>
+      }
       <a
         routerLink="/injury-log"
         class="rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent"
@@ -263,6 +271,47 @@
             </div>
           }
         }
+      </div>
+    </div>
+  }
+  <!-- Edit Starting XI Dialog -->
+  @if (showEditSquad()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" (click)="showEditSquad.set(false)">
+      <div class="w-full max-w-lg rounded-lg bg-background p-6 shadow-lg max-h-[80vh] overflow-y-auto" (click)="$event.stopPropagation()">
+        <h3 class="text-lg font-semibold">Edit Starting XI</h3>
+        <p class="mt-1 text-sm text-muted-foreground">
+          {{ editSquadCount() }}/11 selected
+        </p>
+
+        <div class="mt-4 space-y-1">
+          @for (player of players(); track player.name) {
+            @let playerId = teamName() + '__' + player.name;
+            <button
+              class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors"
+              [class]="editingSquad().has(playerId) ? 'bg-primary/10 text-primary' : 'hover:bg-accent'"
+              (click)="toggleEditSquadPlayer(playerId)"
+            >
+              <span>{{ player.name }}</span>
+              <span class="text-xs text-muted-foreground">{{ player.position }}</span>
+            </button>
+          }
+        </div>
+
+        <div class="mt-4 flex gap-2">
+          <button
+            class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            [disabled]="editSquadCount() !== 11"
+            (click)="saveEditSquad()"
+          >
+            Save
+          </button>
+          <button
+            class="rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent"
+            (click)="showEditSquad.set(false)"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
   }

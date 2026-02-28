@@ -42,6 +42,11 @@ export class DashboardComponent implements OnInit {
   matchSquad = signal<Record<string, MatchRole>>({});
   advanceStep = signal<'squad' | 'date' | 'result'>('date');
 
+  // Edit Starting XI
+  showEditSquad = signal(false);
+  editingSquad = signal<Set<string>>(new Set());
+  editSquadCount = computed(() => this.editingSquad().size);
+
   teamName = computed(() => this.gameState()?.teamName ?? "");
   currentDate = computed(() => this.gameState()?.currentDate ?? "");
   fatigueEnabled = computed(() => this.gameState()?.fatigueEnabled ?? false);
@@ -293,6 +298,40 @@ export class DashboardComponent implements OnInit {
 
   proceedToDate() {
     this.advanceStep.set('date');
+  }
+
+  openEditSquad() {
+    const state = this.gameState();
+    if (!state) return;
+    this.editingSquad.set(new Set(state.defaultSquad));
+    this.showEditSquad.set(true);
+  }
+
+  toggleEditSquadPlayer(playerId: string) {
+    this.editingSquad.update(set => {
+      const next = new Set(set);
+      if (next.has(playerId)) {
+        next.delete(playerId);
+      } else if (next.size < 11) {
+        next.add(playerId);
+      }
+      return next;
+    });
+  }
+
+  saveEditSquad() {
+    const state = this.gameState();
+    if (!state) return;
+    const newState = { ...state, defaultSquad: [...this.editingSquad()] };
+    const saveId = this.storageService.getActiveSaveId()!;
+    const save = this.storageService.getSave(saveId)!;
+    this.storageService.saveSave({
+      ...save,
+      gameState: newState,
+      updatedAt: new Date().toISOString(),
+    });
+    this.gameState.set(newState);
+    this.showEditSquad.set(false);
   }
 
   private addDays(date: string, days: number): string {

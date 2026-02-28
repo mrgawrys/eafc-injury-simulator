@@ -84,25 +84,6 @@
     (input)="onSearchInput($event)"
   />
 
-  <div class="mb-6 flex items-center gap-3 rounded-lg border bg-card p-4">
-    <button
-      class="relative h-6 w-11 rounded-full transition-colors"
-      [class]="fatigueEnabled() ? 'bg-primary' : 'bg-muted'"
-      (click)="toggleFatigue()"
-    >
-      <span
-        class="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white transition-transform"
-        [class.translate-x-5]="fatigueEnabled()"
-      ></span>
-    </button>
-    <div>
-      <div class="text-sm font-medium">Fatigue Simulation</div>
-      <div class="text-xs text-muted-foreground">
-        Track squad selection, substitutions, and fatigue-based injury risk
-      </div>
-    </div>
-  </div>
-
   <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
     @for (team of filteredTeams(); track team.name) {
       <button
@@ -139,6 +120,25 @@
             (input)="onSaveNameInput($event)"
             class="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
+        </div>
+
+        <div class="mt-4 flex items-center gap-3">
+          <button
+            class="relative h-6 w-11 rounded-full transition-colors"
+            [class]="fatigueEnabled() ? 'bg-primary' : 'bg-muted'"
+            (click)="toggleFatigue()"
+          >
+            <span
+              class="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white transition-transform"
+              [class.translate-x-5]="fatigueEnabled()"
+            ></span>
+          </button>
+          <div>
+            <div class="text-sm font-medium">Fatigue Simulation</div>
+            <div class="text-xs text-muted-foreground">
+              Track squad selection, substitutions, and fatigue-based injury risk
+            </div>
+          </div>
         </div>
 
         <div class="mt-6 flex justify-end gap-2">

@@ -3,11 +3,15 @@ import type { Player, InjuryProfile } from '../models/player';
 import type { Injury } from '../models/injury';
 import { FatigueService } from './fatigue';
 
+/** Recovery injury-risk multiplier for players recently returned from injury. */
+const RECOVERY_MULTIPLIER = 1.5;
+
 export interface DayResult {
   newInjuries: Injury[];
   recovered: string[];
   activeInjuries: Injury[];
   updatedFatigue?: Record<string, number>;
+  updatedRecovery?: Record<string, string>;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -20,7 +24,8 @@ export class SimulationService {
     activeInjuries: Injury[],
     teamName: string,
     date: string,
-    playerFatigue?: Record<string, number>
+    playerFatigue?: Record<string, number>,
+    playerRecovery?: Record<string, string>
   ): DayResult {
     const newInjuries: Injury[] = [];
     const injuredPlayerIds = new Set(activeInjuries.map((i) => i.playerId));
@@ -32,6 +37,9 @@ export class SimulationService {
       let dailyProb = player.injuryProfile.injuriesPerSeason / 365;
       if (playerFatigue && playerId in playerFatigue) {
         dailyProb *= this.fatigueService.getMultiplier(playerFatigue[playerId]);
+      }
+      if (playerRecovery && playerId in playerRecovery && playerRecovery[playerId] > date) {
+        dailyProb *= RECOVERY_MULTIPLIER;
       }
       if (Math.random() < dailyProb) {
         const duration = this.sampleDuration(player.injuryProfile);
@@ -63,12 +71,14 @@ export class SimulationService {
     teamName: string,
     fromDate: string,
     toDate: string,
-    playerFatigue?: Record<string, number>
+    playerFatigue?: Record<string, number>,
+    playerRecovery?: Record<string, string>
   ): DayResult {
     let current = activeInjuries.slice();
     const allNewInjuries: Injury[] = [];
     const allRecovered = new Set<string>();
     let fatigue = playerFatigue ? { ...playerFatigue } : undefined;
+    let recovery = playerRecovery ? { ...playerRecovery } : undefined;
     let dayCount = 0;
 
     const start = new Date(fromDate);
@@ -91,6 +101,15 @@ export class SimulationService {
         }
       }
 
+      // Expire finished recovery periods
+      if (recovery) {
+        for (const id of Object.keys(recovery)) {
+          if (recovery[id] <= dateStr) {
+            delete recovery[id];
+          }
+        }
+      }
+
       // Check recoveries
       const stillInjured: Injury[] = [];
       for (const inj of current) {
@@ -99,6 +118,10 @@ export class SimulationService {
           if (fatigue) {
             fatigue[inj.playerId] = this.fatigueService.getReturnFromInjuryFatigue();
           }
+          // Set recovery period: 30% of days missed, clamped to 3-14 days
+          const recoveryDays = Math.min(14, Math.max(3, Math.round(inj.daysMissed * 0.3)));
+          if (!recovery) recovery = {};
+          recovery[inj.playerId] = this.addDays(dateStr, recoveryDays);
         } else {
           stillInjured.push(inj);
         }
@@ -106,7 +129,7 @@ export class SimulationService {
       current = stillInjured;
 
       // Simulate new injuries
-      const dayResult = this.simulateDay(players, current, teamName, dateStr, fatigue);
+      const dayResult = this.simulateDay(players, current, teamName, dateStr, fatigue, recovery);
       allNewInjuries.push(...dayResult.newInjuries);
       current = [...current, ...dayResult.newInjuries];
     }
@@ -116,6 +139,7 @@ export class SimulationService {
       recovered: [...allRecovered],
       activeInjuries: current,
       updatedFatigue: fatigue,
+      updatedRecovery: recovery,
     };
   }
 
@@ -125,7 +149,7 @@ export class SimulationService {
     const u2 = Math.random();
     const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
     const duration = Math.round(profile.avgDaysMissed + z * profile.stdDevDaysMissed);
-    return Math.max(1, duration);
+    return Math.min(120, Math.max(1, duration));
   }
 
   private sampleInjuryType(profile: InjuryProfile): string {

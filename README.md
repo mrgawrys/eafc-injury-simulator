@@ -1,59 +1,46 @@
-# FifaInjuries
+# FIFA Injury Simulator
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.0.
+Simulate realistic squad injuries for FC 25 teams using real Transfermarkt injury data. Pick a team, advance through the season, and see who gets injured based on each player's actual injury history.
 
-## Development server
+## Prerequisites
 
-To start a local development server, run:
+- Node.js 20+
+- npm
 
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Setup
 
 ```bash
-ng generate component component-name
+npm install
+npm run setup-data
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+`setup-data` downloads three CSV datasets (~8MB total) and processes them into JSON:
+- **FC 25 roster** — 15,800+ players from SoFIFA
+- **Transfermarkt injury history** — 143,000+ injury records
+- **Transfermarkt player profiles** — maps player IDs to names for joining
+
+Players are fuzzy-matched between datasets. Those with injury history get personalized injury profiles; others get a league-average fallback.
+
+### Manual data fallback
+
+If auto-download fails, manually place these files in `data-raw/`:
+- `roster.csv` from [Kaggle FC25 dataset](https://www.kaggle.com/datasets/nyagami/ea-sports-fc-25-database-ratings-and-stats)
+- `injuries.csv` and `profiles.csv` from [salimt/football-datasets](https://github.com/salimt/football-datasets)
+
+Then run `npm run process-data`.
+
+## Run
 
 ```bash
-ng generate --help
+npm start
 ```
 
-## Building
+Opens at http://localhost:4200.
 
-To build the project run:
+## How to play
 
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+1. **Select a team** — search and pick from 650+ teams
+2. **Dashboard** — see your squad with availability status
+3. **Advance Time** — skip days or jump to next match (3 days). The simulation rolls daily injury chances based on each player's historical injury rate
+4. **Injury Log** — view all injuries that occurred during your season
+5. **New Season** — reset and pick a new team

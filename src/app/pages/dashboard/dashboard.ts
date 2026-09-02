@@ -161,6 +161,8 @@ export class DashboardComponent implements OnInit {
     if (this.route.snapshot.queryParamMap.get('pickSquad')) {
       this.initialSquadPick.set(true);
       this.showEditSquad.set(true);
+      // Clear query param so a page reload doesn't re-trigger the picker
+      this.router.navigate([], { queryParams: {}, replaceUrl: true });
     }
   }
 

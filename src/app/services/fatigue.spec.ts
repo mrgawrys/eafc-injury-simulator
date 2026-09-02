@@ -8,9 +8,9 @@ describe('FatigueService', () => {
   });
 
   describe('getMultiplier', () => {
-    it('should return 0.85 for fresh players (0-25)', () => {
-      expect(service.getMultiplier(0)).toBe(0.85);
-      expect(service.getMultiplier(25)).toBe(0.85);
+    it('should return 0.9 for fresh players (0-25)', () => {
+      expect(service.getMultiplier(0)).toBe(0.9);
+      expect(service.getMultiplier(25)).toBe(0.9);
     });
 
     it('should return 1.0 for normal fatigue (26-50)', () => {
@@ -18,19 +18,19 @@ describe('FatigueService', () => {
       expect(service.getMultiplier(50)).toBe(1.0);
     });
 
-    it('should return 1.25 for fatigued players (51-70)', () => {
-      expect(service.getMultiplier(51)).toBe(1.25);
-      expect(service.getMultiplier(70)).toBe(1.25);
+    it('should return 1.1 for fatigued players (51-70)', () => {
+      expect(service.getMultiplier(51)).toBe(1.1);
+      expect(service.getMultiplier(70)).toBe(1.1);
     });
 
-    it('should return 1.5 for high risk players (71-85)', () => {
-      expect(service.getMultiplier(71)).toBe(1.5);
-      expect(service.getMultiplier(85)).toBe(1.5);
+    it('should return 1.2 for high risk players (71-85)', () => {
+      expect(service.getMultiplier(71)).toBe(1.2);
+      expect(service.getMultiplier(85)).toBe(1.2);
     });
 
-    it('should return 2.0 for extreme fatigue (86-100)', () => {
-      expect(service.getMultiplier(86)).toBe(2.0);
-      expect(service.getMultiplier(100)).toBe(2.0);
+    it('should return 1.35 for extreme fatigue (86-100)', () => {
+      expect(service.getMultiplier(86)).toBe(1.35);
+      expect(service.getMultiplier(100)).toBe(1.35);
     });
   });
 

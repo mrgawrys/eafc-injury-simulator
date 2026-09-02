@@ -26,6 +26,7 @@ export class TeamSelectionComponent implements OnInit {
   showNewSeasonDialog = signal(false);
   selectedTeamName = signal('');
   saveName = signal('');
+  seasonStartDate = signal(new Date().toISOString().slice(0, 10));
 
 
   filteredTeams = computed(() => {
@@ -75,6 +76,7 @@ export class TeamSelectionComponent implements OnInit {
     this.selectedTeamName.set(teamName);
     const num = this.getNextSaveNumber(teamName);
     this.saveName.set(`${teamName} Save (${num})`);
+    this.seasonStartDate.set(new Date().toISOString().slice(0, 10));
     this.showNewSeasonDialog.set(true);
   }
 
@@ -101,13 +103,13 @@ export class TeamSelectionComponent implements OnInit {
   private startGame(defaultSquad: string[], playerFatigue: Record<string, number>, pickSquad = false) {
     const teamName = this.selectedTeamName();
     const name = this.saveName().trim() || `${teamName} Save`;
-    const today = new Date().toISOString().slice(0, 10);
+    const startDate = this.seasonStartDate();
     const now = new Date().toISOString();
 
     const gameState: GameState = {
       teamName,
-      currentDate: today,
-      seasonStartDate: today,
+      currentDate: startDate,
+      seasonStartDate: startDate,
       activeInjuries: [],
       injuryHistory: [],
       fatigueEnabled: this.fatigueEnabled(),
@@ -147,6 +149,10 @@ export class TeamSelectionComponent implements OnInit {
 
   onSaveNameInput(event: Event) {
     this.saveName.set((event.target as HTMLInputElement).value);
+  }
+
+  onStartDateInput(event: Event) {
+    this.seasonStartDate.set((event.target as HTMLInputElement).value);
   }
 
   getTeamBadgeUrl(teamName: string): string | undefined {

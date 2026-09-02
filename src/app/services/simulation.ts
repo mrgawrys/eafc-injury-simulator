@@ -4,7 +4,7 @@ import type { Injury } from '../models/injury';
 import { FatigueService } from './fatigue';
 
 /** Recovery injury-risk multiplier for players recently returned from injury. */
-const RECOVERY_MULTIPLIER = 1.5;
+const RECOVERY_MULTIPLIER = 2.0;
 
 export interface DayResult {
   newInjuries: Injury[];

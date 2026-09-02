@@ -62,11 +62,7 @@
             }
           },
           "defaultConfiguration": "development",
-          "options": {
-            "headers": {
-              "Cache-Control": "public, max-age=604800"
-            }
-          }
+          "options": {}
         },
         "test": {
           "builder": "@angular/build:unit-test"

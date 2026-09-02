@@ -7,11 +7,11 @@ export type FatigueBadge = 'fresh' | 'fatigued' | 'high-risk';
 export class FatigueService {
   /** Returns injury probability multiplier based on fatigue score. */
   getMultiplier(fatigue: number): number {
-    if (fatigue <= 25) return 0.85;
+    if (fatigue <= 25) return 0.9;
     if (fatigue <= 50) return 1.0;
-    if (fatigue <= 70) return 1.25;
-    if (fatigue <= 85) return 1.5;
-    return 2.0;
+    if (fatigue <= 70) return 1.1;
+    if (fatigue <= 85) return 1.2;
+    return 1.35;
   }
 
   /** Subtract 3 fatigue per day, floor at 0. */
